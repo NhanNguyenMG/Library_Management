@@ -62,14 +62,14 @@ public class SessionManager {
         this.fullName = fullName;
         this.email = email;
         this.loginTime = new Date();
-        System.out.println("[SessionManager] Người dùng đăng nhập thành công: " + fullName + " (" + role + ") lúc " + loginTime);
+        System.out.println("[SessionManager] User logged in successfully: " + fullName + " (" + role + ") at " + loginTime);
     }
 
     /**
      * Đăng xuất khỏi hệ thống, xóa sạch thông tin phiên làm việc.
      */
     public synchronized void logout() {
-        System.out.println("[SessionManager] Người dùng '" + this.username + "' đã đăng xuất.");
+        System.out.println("[SessionManager] User '" + this.username + "' has logged out.");
         clearSession();
     }
 
@@ -148,7 +148,7 @@ public class SessionManager {
     }
 
     public synchronized String getFullName() {
-        return fullName != null ? fullName : "Khách";
+        return fullName != null ? fullName : "Guest";
     }
 
     public synchronized String getEmail() {
@@ -161,16 +161,16 @@ public class SessionManager {
 
     /**
      * Lấy chuỗi định dạng thông tin người dùng đang đăng nhập để hiển thị trên tiêu đề giao diện Desktop.
-     * Ví dụ: "Trần Thị Mai (Thủ thư - TT0001)"
+     * Ví dụ: "Tran Thi Mai (Librarian - TT0001)"
      */
     public synchronized String getDisplayNameWithRole() {
         if (!loggedIn) {
-            return "Chưa đăng nhập";
+            return "Not logged in";
         }
         String roleName = role;
-        if ("THU_THU".equals(role)) roleName = "Thủ thư";
-        else if ("QUAN_LI".equals(role)) roleName = "Quản lý";
-        else if ("SINH_VIEN".equals(role)) roleName = "Sinh viên";
+        if ("THU_THU".equals(role)) roleName = "Librarian";
+        else if ("QUAN_LI".equals(role)) roleName = "Manager";
+        else if ("SINH_VIEN".equals(role)) roleName = "Student";
 
         return fullName + " (" + roleName + (userId != null ? " - " + userId : "") + ")";
     }

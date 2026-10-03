@@ -91,9 +91,9 @@ public class DBConnection {
             if (props.getProperty("db.url") != null) this.url = props.getProperty("db.url").trim();
             if (props.getProperty("db.user") != null) this.user = props.getProperty("db.user").trim();
             if (props.getProperty("db.password") != null) this.password = props.getProperty("db.password").trim();
-            System.out.println("[DBConnection] Đã tải thành công cấu hình kết nối từ db.properties.");
+            System.out.println("[DBConnection] Successfully loaded configuration from db.properties.");
         } else {
-            System.out.println("[DBConnection] Không tìm thấy db.properties, sử dụng cấu hình mặc định (root@localhost:3306).");
+            System.out.println("[DBConnection] db.properties not found, using default configuration (root@localhost:3306).");
         }
     }
 
@@ -103,10 +103,10 @@ public class DBConnection {
     private void initDriver() {
         try {
             Class.forName(driver);
-            System.out.println("[DBConnection] Đã nạp thành công MySQL JDBC Driver: " + driver);
+            System.out.println("[DBConnection] Successfully loaded MySQL JDBC Driver: " + driver);
         } catch (ClassNotFoundException e) {
-            System.err.println("[DBConnection LỖI] Không tìm thấy Driver MySQL JDBC!");
-            System.err.println("-> Hướng dẫn: Đảm bảo file mysql-connector-j-x.x.x.jar đã được thêm vào Classpath / lib của dự án.");
+            System.err.println("[DBConnection ERROR] MySQL JDBC Driver not found!");
+            System.err.println("-> Guide: Ensure mysql-connector-j-x.x.x.jar is added to the project classpath / lib.");
             e.printStackTrace();
         }
     }
@@ -134,12 +134,12 @@ public class DBConnection {
         if (connection == null || connection.isClosed()) {
             try {
                 connection = DriverManager.getConnection(url, user, password);
-                System.out.println("[DBConnection] Mở kết nối thành công tới database: " + url.split("\\?")[0]);
+                System.out.println("[DBConnection] Successfully connected to database: " + url.split("\\?")[0]);
             } catch (SQLException e) {
-                System.err.println("[DBConnection LỖI] Không thể kết nối tới MySQL Server!");
-                System.err.println("-> Kiểm tra: 1. MySQL đã được khởi động chưa (XAMPP / MySQL Service)?");
-                System.err.println("            2. Tên đăng nhập và mật khẩu trong db.properties đã đúng chưa?");
-                System.err.println("            3. Database 'quan_li_thu_vien' đã được tạo chưa?");
+                System.err.println("[DBConnection ERROR] Unable to connect to MySQL Server!");
+                System.err.println("-> Check: 1. Is MySQL service running (XAMPP / MySQL Service)?");
+                System.err.println("         2. Are username and password correct in db.properties?");
+                System.err.println("         3. Has database 'quan_li_thu_vien' been created?");
                 throw e;
             }
         }
@@ -169,7 +169,7 @@ public class DBConnection {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                    System.out.println("[DBConnection] Đã đóng kết nối CSDL an toàn.");
+                    System.out.println("[DBConnection] Database connection closed safely.");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -183,13 +183,13 @@ public class DBConnection {
      * Hàm main hỗ trợ chạy kiểm thử nhanh kết nối CSDL trực tiếp từ IDE hoặc dòng lệnh.
      */
     public static void main(String[] args) {
-        System.out.println("=== KIỂM THỬ KẾT NỐI CƠ SỞ DỮ LIỆU MYSQL ===");
+        System.out.println("=== TEST MYSQL DATABASE CONNECTION ===");
         DBConnection db = DBConnection.getInstance();
         boolean success = db.testConnection(5);
         if (success) {
-            System.out.println(">>> KẾT QUẢ: KẾT NỐI TỚI DATABASE 'quan_li_thu_vien' THÀNH CÔNG RỰC RỠ! <<<");
+            System.out.println(">>> RESULT: Successfully connected to database 'quan_li_thu_vien'! <<<");
         } else {
-            System.err.println(">>> KẾT QUẢ: KẾT NỐI THẤT BẠI. Hãy kiểm tra dịch vụ MySQL và mật khẩu. <<<");
+            System.err.println(">>> RESULT: Connection failed. Please check MySQL service and credentials. <<<");
         }
     }
 }
