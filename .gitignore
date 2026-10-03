@@ -1,0 +1,43 @@
+# Compiled class file
+*.class
+
+# Log file
+*.log
+
+# Package Files #
+*.jar
+# Ngoại trừ driver MySQL trong lib
+!LibraryManagement/lib/*.jar
+!lib/*.jar
+
+# Virtual machines such as Vagrant
+.vagrant/
+
+# Eclipse
+.project
+.classpath
+.settings/
+
+# Intellij
+.idea/
+*.iml
+*.iws
+out/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS generated files #
+.DS_Store
+Thumbs.db
+
+# Word temporary files
+~$*.docx
