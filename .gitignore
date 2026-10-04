@@ -19,16 +19,39 @@
 *.tar.gz
 *.rar
 
-# Virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Allow MySQL connector JDBC driver in lib
+!lib/mysql-connector-*.jar
+!LibraryManagement/lib/mysql-connector-*.jar
+
+# Virtual machine crash logs
 hs_err_pid*
 replay_pid*
 
+# Eclipse
+.project
+.classpath
+.settings/
+
 # IntelliJ IDEA
-.idea/workspace.xml
-.idea/tasks.xml
-.idea/shelf/
-.idea/dictionaries/
+.idea/
+*.iml
+*.iws
 out/
 
-# Allow mysql-connector jar in lib
-!lib/mysql-connector-*.jar
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS generated files #
+.DS_Store
+Thumbs.db
+
+# Word temporary files
+~$*.docx
