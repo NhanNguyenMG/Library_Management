@@ -3,16 +3,27 @@ package service;
 import java.util.Date;
 
 /**
- * Lớp SessionManager quản lý phiên đăng nhập của người dùng hiện tại trong toàn bộ ứng dụng.
- * 
- * Áp dụng Singleton Pattern:
- * - Lưu trữ thông tin tài khoản đang làm việc trong bộ nhớ RAM (In-Memory).
- * - Cung cấp thông tin nhân viên/sinh viên hiện tại cho tất cả các Form (UI), Controller và Service.
- * - Giúp phân quyền truy cập chức năng theo vai trò (QUAN_LI, THU_THU, SINH_VIEN).
+ * =========================================================================
+ * Module: Quản lý Phiên Đăng nhập & Hạ tầng Xác thực (Session Infrastructure)
+ * Use Case liên quan: UC-01 Đăng nhập (Login) & Phân quyền người dùng
+ * Sequence Diagram: sd DangNhap (Mục 5.1 SRS)
+ * Traceability Message: SessionManager.getInstance().login(...)
+ * Thiết kế Mẫu: In-Memory Singleton Pattern (Class Diagram SRS)
+ * Ràng buộc: Lưu trữ thông tin tài khoản đang làm việc trong bộ nhớ RAM,
+ *            cung cấp vai trò và mã định danh cho toàn bộ các Form và Service.
+ * =========================================================================
  * 
  * @author Người số 5 (Hạ tầng chung & CSDL)
  */
 public class SessionManager {
+
+    // =========================================================================
+    // CÁC HẰNG SỐ VAI TRÒ HỆ THỐNG (SYSTEM ROLE CONSTANTS)
+    // Khớp với bảng tai_khoan cột quyen_truy_cap trong CSDL MySQL
+    // =========================================================================
+    public static final String ROLE_MANAGER   = "QUAN_LI";
+    public static final String ROLE_LIBRARIAN = "THU_THU";
+    public static final String ROLE_STUDENT   = "SINH_VIEN";
 
     // 1. Thể hiện duy nhất của SessionManager (Singleton)
     private static SessionManager instance;
@@ -46,7 +57,7 @@ public class SessionManager {
     }
 
     /**
-     * Thiết lập phiên làm việc khi người dùng đăng nhập thành công.
+     * Thiết lập phiên làm việc khi người dùng đăng nhập thành công (gọi từ LoginService).
      * 
      * @param username tên đăng nhập
      * @param role vai trò (QUAN_LI, THU_THU, SINH_VIEN)
@@ -62,19 +73,19 @@ public class SessionManager {
         this.fullName = fullName;
         this.email = email;
         this.loginTime = new Date();
-        System.out.println("[SessionManager] User logged in successfully: " + fullName + " (" + role + ") at " + loginTime);
+        System.out.println("[SessionManager] Người dùng đăng nhập thành công: " + fullName + " (" + this.role + ") lúc " + loginTime);
     }
 
     /**
      * Đăng xuất khỏi hệ thống, xóa sạch thông tin phiên làm việc.
      */
     public synchronized void logout() {
-        System.out.println("[SessionManager] User '" + this.username + "' has logged out.");
+        System.out.println("[SessionManager] Người dùng '" + this.username + "' đã đăng xuất.");
         clearSession();
     }
 
     /**
-     * Xóa dữ liệu phiên.
+     * Xóa dữ liệu phiên làm việc nội bộ.
      */
     private void clearSession() {
         this.loggedIn = false;
@@ -100,7 +111,7 @@ public class SessionManager {
     /**
      * Kiểm tra xem người dùng hiện tại có vai trò tương ứng hay không.
      * 
-     * @param requiredRole vai trò cần kiểm tra (ví dụ: "THU_THU")
+     * @param requiredRole vai trò cần kiểm tra (ví dụ: SessionManager.ROLE_LIBRARIAN)
      * @return true nếu trùng khớp vai trò
      */
     public synchronized boolean hasRole(String requiredRole) {
@@ -114,21 +125,21 @@ public class SessionManager {
      * Kiểm tra có phải là Quản lý không.
      */
     public boolean isManager() {
-        return hasRole("QUAN_LI");
+        return hasRole(ROLE_MANAGER);
     }
 
     /**
      * Kiểm tra có phải là Thủ thư không.
      */
     public boolean isLibrarian() {
-        return hasRole("THU_THU");
+        return hasRole(ROLE_LIBRARIAN);
     }
 
     /**
      * Kiểm tra có phải là Sinh viên không.
      */
     public boolean isStudent() {
-        return hasRole("SINH_VIEN");
+        return hasRole(ROLE_STUDENT);
     }
 
     // =========================================================================
@@ -148,7 +159,7 @@ public class SessionManager {
     }
 
     public synchronized String getFullName() {
-        return fullName != null ? fullName : "Guest";
+        return fullName != null ? fullName : "Khách";
     }
 
     public synchronized String getEmail() {
@@ -161,16 +172,16 @@ public class SessionManager {
 
     /**
      * Lấy chuỗi định dạng thông tin người dùng đang đăng nhập để hiển thị trên tiêu đề giao diện Desktop.
-     * Ví dụ: "Tran Thi Mai (Librarian - TT0001)"
+     * Ví dụ: "Trần Thị Mai (Thủ thư - TT0001)"
      */
     public synchronized String getDisplayNameWithRole() {
         if (!loggedIn) {
-            return "Not logged in";
+            return "Chưa đăng nhập";
         }
         String roleName = role;
-        if ("THU_THU".equals(role)) roleName = "Librarian";
-        else if ("QUAN_LI".equals(role)) roleName = "Manager";
-        else if ("SINH_VIEN".equals(role)) roleName = "Student";
+        if (ROLE_LIBRARIAN.equals(role)) roleName = "Thủ thư";
+        else if (ROLE_MANAGER.equals(role)) roleName = "Quản lý";
+        else if (ROLE_STUDENT.equals(role)) roleName = "Sinh viên";
 
         return fullName + " (" + roleName + (userId != null ? " - " + userId : "") + ")";
     }

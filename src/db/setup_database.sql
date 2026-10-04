@@ -1,8 +1,10 @@
 -- =====================================================================
 -- DỰ ÁN: HỆ THỐNG QUẢN LÝ THƯ VIỆN (LIBRARY MANAGEMENT SYSTEM)
+-- MÔN HỌC: CÔNG NGHỆ PHẦN MỀM (SOEN330679)
 -- FILE TỔNG HỢP: setup_database.sql (1-CLICK SETUP)
 -- BAO GỒM: TẠO DATABASE -> TẠO BẢNG -> TẠO INDEX -> CHÈN SEED DATA
 -- NGƯỜI THỰC HIỆN: Người số 5 (Hạ tầng chung & CSDL)
+-- ĐÃ CHUẨN HÓA THEO CODING_STANDARDS.md & PROJECT_PLAN.md
 -- =====================================================================
 
 -- -------------------------------------------------------------
@@ -27,13 +29,13 @@ DROP TABLE IF EXISTS quan_li;
 DROP TABLE IF EXISTS tai_khoan;
 
 -- -------------------------------------------------------------
--- PHẦN 2: TẠO CẤU TRÚC 8 BẢNG
+-- PHẦN 2: TẠO CẤU TRÚC 8 BẢNG THEO SRS & GLOSSARY MAPPING
 -- -------------------------------------------------------------
 CREATE TABLE tai_khoan (
     ten_dang_nhap VARCHAR(50) PRIMARY KEY,
-    mat_khau VARCHAR(30) NOT NULL,
-    quyen_truy_cap VARCHAR(20) NOT NULL,
-    trang_thai VARCHAR(20) NOT NULL
+    mat_khau VARCHAR(255) NOT NULL COMMENT 'Độ dài 255 ký tự hỗ trợ mã hóa mật khẩu theo SRS',
+    quyen_truy_cap VARCHAR(20) NOT NULL COMMENT 'QUAN_LI, THU_THU, SINH_VIEN',
+    trang_thai VARCHAR(20) NOT NULL COMMENT 'ACTIVE, LOCKED, INACTIVE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE quan_li (
@@ -61,15 +63,15 @@ CREATE TABLE sinh_vien (
     sdt VARCHAR(12) NOT NULL UNIQUE,
     so_sach_dang_muon INT NOT NULL DEFAULT 0,
     so_tien_no DECIMAL(12,2) DEFAULT 0,
-    muc_giam_gia DECIMAL(5,2) DEFAULT 0,
-    li_do TEXT,
-    loai VARCHAR(50) NOT NULL, 
+    muc_giam_gia DECIMAL(5,2) DEFAULT 0 COMMENT 'Phần trăm giảm phạt (ví dụ: 20.00 là giảm 20%)',
+    li_do TEXT COMMENT 'Lý do thuộc diện ưu tiên',
+    loai VARCHAR(50) NOT NULL COMMENT 'THUONG hoặc UU_TIEN', 
     FOREIGN KEY (ten_dang_nhap) REFERENCES tai_khoan(ten_dang_nhap) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE dau_sach (
     ma_dau_sach VARCHAR(12) PRIMARY KEY,
-    tac_sach VARCHAR(255) NOT NULL,
+    tac_sach VARCHAR(255) NOT NULL COMMENT 'Tên sách / Tựa sách',
     tac_gia VARCHAR(150) NOT NULL,
     mo_ta TEXT,
     so_luong_con INT NOT NULL,
@@ -102,8 +104,8 @@ CREATE TABLE thanh_toan (
     ma_giao_dich VARCHAR(12) PRIMARY KEY,
     ma_phieu VARCHAR(12) NOT NULL UNIQUE,
     so_tien DECIMAL(12,2) NOT NULL,
-    phuong_thuc VARCHAR(25) NOT NULL,
-    trang_thai VARCHAR(25) NOT NULL,
+    phuong_thuc VARCHAR(50) NOT NULL COMMENT 'TIEN_MAT, CHUYEN_KHOAN, VNPAY, CASH, BANK_TRANSFER',
+    trang_thai VARCHAR(50) NOT NULL COMMENT 'DA_THANH_TOAN, CHUA_THANH_TOAN, PAID, PENDING',
     thoi_gian TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ma_phieu) REFERENCES phieu_muon(ma_phieu) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -128,7 +130,7 @@ CREATE INDEX idx_sinhvien_sotienno     ON sinh_vien(so_tien_no);
 CREATE INDEX idx_thanhtoan_trangthai   ON thanh_toan(trang_thai);
 
 -- -------------------------------------------------------------
--- PHẦN 4: CHÈN BỘ DỮ LIỆU MẪU (SEED DATA)
+-- PHẦN 4: CHÈN BỘ DỮ LIỆU MẪU (SEED DATA ĐỦ 16 TEST CASE)
 -- -------------------------------------------------------------
 INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, quyen_truy_cap, trang_thai) VALUES
 ('admin',     'admin123',  'QUAN_LI',   'ACTIVE'),

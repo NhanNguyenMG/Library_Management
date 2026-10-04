@@ -3,6 +3,7 @@
 -- MÔN HỌC: CÔNG NGHỆ PHẦN MỀM (SOEN330679)
 -- FILE: QLTV.sql (Data Definition Language - DDL)
 -- NGƯỜI THỰC HIỆN: Người số 5 (Hạ tầng chung & CSDL)
+-- ĐÃ CHUẨN HÓA THEO CODING_STANDARDS.md & PROJECT_PLAN.md (Giai đoạn 1)
 -- =====================================================================
 
 -- 1. Khởi tạo Database nếu chưa tồn tại
@@ -23,13 +24,13 @@ DROP TABLE IF EXISTS quan_li;
 DROP TABLE IF EXISTS tai_khoan;
 
 -- =====================================================================
--- 3. Tạo các bảng theo lược đồ chuẩn
+-- 3. Tạo các bảng theo lược đồ chuẩn (8 Entity Models theo SRS)
 -- =====================================================================
 
 -- Bảng 1: Tài khoản người dùng (Dùng chung cho Quản lý, Thủ thư, Sinh viên)
 CREATE TABLE tai_khoan (
     ten_dang_nhap VARCHAR(50) PRIMARY KEY,
-    mat_khau VARCHAR(30) NOT NULL,
+    mat_khau VARCHAR(255) NOT NULL COMMENT 'Độ dài 255 ký tự hỗ trợ mã hóa mật khẩu theo SRS',
     quyen_truy_cap VARCHAR(20) NOT NULL COMMENT 'QUAN_LI, THU_THU, SINH_VIEN',
     trang_thai VARCHAR(20) NOT NULL COMMENT 'ACTIVE, LOCKED, INACTIVE'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -75,7 +76,7 @@ CREATE TABLE dau_sach (
     tac_gia VARCHAR(150) NOT NULL,
     mo_ta TEXT,
     so_luong_con INT NOT NULL,
-    -- Cột sinh ảo ten_sach tương thích với cả 2 cách gọi tac_sach và ten_sach
+    -- Cột sinh ảo ten_sach tương thích với cả 2 cách gọi tac_sach và ten_sach theo SRS và Glossary
     ten_sach VARCHAR(255) GENERATED ALWAYS AS (tac_sach) VIRTUAL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -103,13 +104,13 @@ CREATE TABLE chi_tiet_phieu_muon (
     FOREIGN KEY (ma_dau_sach) REFERENCES dau_sach(ma_dau_sach) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Bảng 8: Giao dịch thanh toán tiền phạt
+-- Bảng 8: Giao dịch thanh toán tiền phạt (UC-07)
 CREATE TABLE thanh_toan (
     ma_giao_dich VARCHAR(12) PRIMARY KEY,
     ma_phieu VARCHAR(12) NOT NULL UNIQUE,
     so_tien DECIMAL(12,2) NOT NULL,
-    phuong_thuc VARCHAR(25) NOT NULL COMMENT 'TIEN_MAT, CHUYEN_KHOAN, VNPAY',
-    trang_thai VARCHAR(25) NOT NULL COMMENT 'DA_THANH_TOAN, CHUA_THANH_TOAN',
+    phuong_thuc VARCHAR(50) NOT NULL COMMENT 'TIEN_MAT, CHUYEN_KHOAN, VNPAY, CASH, BANK_TRANSFER',
+    trang_thai VARCHAR(50) NOT NULL COMMENT 'DA_THANH_TOAN, CHUA_THANH_TOAN, PAID, PENDING',
     thoi_gian TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (ma_phieu) REFERENCES phieu_muon(ma_phieu) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
