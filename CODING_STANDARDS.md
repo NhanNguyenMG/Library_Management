@@ -199,7 +199,7 @@ Khi một nghiệp vụ cần thay đổi trên **nhiều bảng CSDL** (ví d�
 ## 5. QUY TẮC COMMENT & TRACEABILITY (BẮT BUỘC ĐỂ CHẤM ĐIỂM)
 
 Đề bài thực hành `C6-D1` yêu cầu: **"Chỉ ra ít nhất 4 điểm cụ thể trong code tương ứng với element trong tài liệu thiết kế"**.  
-Do đó, trước mỗi phương thức nghiệp vụ quan trọng trong Service và Controller, bạn **BẮT BUỘC** phải gắn khối comment chuẩn sau:
+Do đó, trước mỗi phương thức nghiệp vụ quan trọng trong Service và Controller, lập trình viên **BẮT BUỘC** phải gắn khối comment chuẩn sau:
 
 ```java
 /**

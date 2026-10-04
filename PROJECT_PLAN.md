@@ -28,11 +28,11 @@ Xây dựng ứng dụng Desktop Quản lý Thư viện hoàn chỉnh bằng **J
 
 ---
 
-## 2. PHÂN CÔNG VAI TRÒ & PHẠM VI CÔNG VIỆC CỦA BẠN (NGƯỜI 1)
+## 2. PHÂN CÔNG VAI TRÒ TRONG NHÓM (6 THÀNH VIÊN)
 
 | Thành viên | Trách nhiệm chính | Chi tiết module |
 |---|---|---|
-| **Người 1 (BẠN)** | **UC-05, UC-06, UC-07 (Trả sách & Phạt)** + **Test/Debug toàn bộ dự án** | `ReturnService`, `ReturnController`, `PaymentRepository`, `ReturnBookForm`, `TestReturn.java`, khớp Ma trận truy vết (Bảng 17) & Bug Report (Bảng 19). |
+| **Người 1** | **UC-05, UC-06, UC-07 (Trả sách & Phạt)** + **Test/Debug toàn bộ dự án** | `ReturnService`, `ReturnController`, `PaymentRepository`, `ReturnBookForm`, `TestReturn.java`, khớp Ma trận truy vết (Bảng 17) & Bug Report (Bảng 19). |
 | **Người 2** | UC-01 Đăng nhập | `LoginService`, `LoginController`, `AccountRepository`, `LoginForm` |
 | **Người 3** | UC-02 Tra cứu tài liệu | `SearchService`, `SearchController`, `BookRepository` (phần tìm kiếm), `SearchBookForm` |
 | **Người 4** | UC-03, UC-04 Mượn sách | `BorrowService`, `BorrowController`, `BorrowSlipRepository`, `BorrowDetailRepository`, `BorrowForm` |
@@ -105,5 +105,5 @@ Xây dựng `ReturnService.java`:
 
 ## 4. QUY TẮC PHỐI HỢP TRÊN GIT
 - **Nhánh tích hợp chung:** `dev`
-- **Nhánh làm việc cá nhân:** `feature/uc05-06-07-return-book`
-- **Quy tắc commit:** `feat(return): mô tả chi tiết #UC-05`
+- **Nhánh làm việc cá nhân:** `feature/uc[SốUC]-[tên_ngắn]` (Ví dụ: `feature/uc05-return-book`, `feature/uc01-login`)
+- **Quy chuẩn commit (100% Tiếng Anh):** `type(scope): description in English #UC-XX` (Chi tiết xem tại `CODING_STANDARDS.md`)
