@@ -222,10 +222,12 @@ public ReturnResult confirmReturn(List<String> returnedBookIds, String slipId, S
 - **Nhánh tích hợp chung:** `dev`
 - **Nhánh cá nhân làm tính năng:** `feature/uc[SốUC]-[tên_ngắn]`
   - Ví dụ: `feature/uc05-return-book`, `feature/uc01-login`, `feature/uc03-borrow`
-- **Quy chuẩn thông điệp Commit:**
-  `feat(scope): mô tả công việc vừa làm #UC-XX`
-  - Ví dụ:
-    - `feat(return): cai dat ham tinh tien phat tre han #UC-07`
-    - `feat(borrow): kiem tra han muc toi da 5 cuon sach #UC-04`
-    - `feat(login): xu ly xac thuc tai khoan va phan quyen #UC-01`
-    - `fix(return): sua loi khong rollback khi mat ket noi #UC-05`
+- **Quy chuẩn thông điệp Commit (100% TIẾNG ANH):**
+  `type(scope): description in English #UC-XX`
+  - Các type hợp lệ: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`
+  - **Ví dụ chuẩn:**
+    - `feat(return): implement late fee calculation logic #UC-07`
+    - `feat(borrow): validate maximum 5 books limit #UC-04`
+    - `feat(login): authenticate user and authorize roles #UC-01`
+    - `fix(return): rollback transaction on database disconnection #UC-05`
+    - `docs(standards): update naming conventions #SETUP`
