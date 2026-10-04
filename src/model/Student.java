@@ -12,6 +12,18 @@ public class Student {
 
     public Student() {}
 
+    // Bổ sung constructor có tham số
+    public Student(String studentId, String fullName, String email, String username, String phone, int borrowedCount, double debtAmount, String type) {
+        this.studentId = studentId;
+        this.fullName = fullName;
+        this.email = email;
+        this.username = username;
+        this.phone = phone;
+        this.borrowedCount = borrowedCount;
+        this.debtAmount = debtAmount;
+        this.type = type;
+    }
+
     public String getStudentId() { return studentId; }
     public void setStudentId(String studentId) { this.studentId = studentId; }
     public String getFullName() { return fullName; }

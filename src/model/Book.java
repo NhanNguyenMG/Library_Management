@@ -9,6 +9,15 @@ public class Book {
 
     public Book() {}
 
+    // Bổ sung constructor có tham số
+    public Book(String bookId, String title, String author, int stockQuantity, String description) {
+        this.bookId = bookId;
+        this.title = title;
+        this.author = author;
+        this.stockQuantity = stockQuantity;
+        this.description = description;
+    }
+
     public String getBookId() { return bookId; }
     public void setBookId(String bookId) { this.bookId = bookId; }
     public String getTitle() { return title; }

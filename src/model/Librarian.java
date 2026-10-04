@@ -7,6 +7,14 @@ public class Librarian extends Account {
 
     public Librarian() { super(); }
 
+    // Bổ sung constructor có tham số
+    public Librarian(String username, String password, String status, String librarianId, String fullName, String shift) {
+        super(username, password, "LIBRARIAN", status);
+        this.librarianId = librarianId;
+        this.fullName = fullName;
+        this.shift = shift;
+    }
+
     public String getLibrarianId() { return librarianId; }
     public void setLibrarianId(String librarianId) { this.librarianId = librarianId; }
     public String getFullName() { return fullName; }

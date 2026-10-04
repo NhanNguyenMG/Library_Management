@@ -1,7 +1,8 @@
 package model;
 
 public class BorrowDetail {
-    private int id;
+    // Sửa kiểu int thành String để khớp với varchar trong CSDL
+    private String id; 
     private String slipId;
     private String bookId;
     private int quantity;
@@ -9,8 +10,17 @@ public class BorrowDetail {
 
     public BorrowDetail() {}
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    // Bổ sung constructor có tham số
+    public BorrowDetail(String id, String slipId, String bookId, int quantity, String note) {
+        this.id = id;
+        this.slipId = slipId;
+        this.bookId = bookId;
+        this.quantity = quantity;
+        this.note = note;
+    }
+
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
     public String getSlipId() { return slipId; }
     public void setSlipId(String slipId) { this.slipId = slipId; }
     public String getBookId() { return bookId; }

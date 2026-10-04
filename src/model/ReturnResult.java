@@ -9,6 +9,15 @@ public class ReturnResult {
 
     public ReturnResult() {}
 
+    // Bổ sung constructor có tham số
+    public ReturnResult(boolean isSuccess, String message, String slipId, double fineAmount, long lateDays) {
+        this.isSuccess = isSuccess;
+        this.message = message;
+        this.slipId = slipId;
+        this.fineAmount = fineAmount;
+        this.lateDays = lateDays;
+    }
+
     public boolean isSuccess() { return isSuccess; }
     public void setSuccess(boolean isSuccess) { this.isSuccess = isSuccess; }
     public String getMessage() { return message; }

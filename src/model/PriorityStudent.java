@@ -6,6 +6,13 @@ public class PriorityStudent extends Student {
 
     public PriorityStudent() {}
 
+    // Bổ sung constructor có tham số
+    public PriorityStudent(String studentId, String fullName, String email, String username, String phone, int borrowedCount, double debtAmount, String type, double discountRate, String priorityReason) {
+        super(studentId, fullName, email, username, phone, borrowedCount, debtAmount, type);
+        this.discountRate = discountRate;
+        this.priorityReason = priorityReason;
+    }
+
     public double calculateDiscountedFine(double originalFine) {
         return originalFine * (1.0 - discountRate / 100.0);
     }

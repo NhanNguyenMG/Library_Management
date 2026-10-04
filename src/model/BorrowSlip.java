@@ -11,6 +11,16 @@ public class BorrowSlip {
 
     public BorrowSlip() {}
 
+    // Bổ sung constructor có tham số
+    public BorrowSlip(String slipId, String studentId, String librarianId, Timestamp borrowDate, Timestamp dueDate, Timestamp actualReturnDate) {
+        this.slipId = slipId;
+        this.studentId = studentId;
+        this.librarianId = librarianId;
+        this.borrowDate = borrowDate;
+        this.dueDate = dueDate;
+        this.actualReturnDate = actualReturnDate;
+    }
+
     public long calculateLateDays() {
         if (actualReturnDate != null && actualReturnDate.after(dueDate)) {
             long diffInMillis = actualReturnDate.getTime() - dueDate.getTime();
