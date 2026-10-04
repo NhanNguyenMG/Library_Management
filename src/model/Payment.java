@@ -1,29 +1,26 @@
 package model;
+import java.sql.Timestamp;
 
 public class Payment {
-    private String paymentId;
+    private String transactionId;
     private String slipId;
-    private double fineAmount;
-    private String reason;
+    private double amount;
+    private String paymentMethod;
+    private String status;
+    private Timestamp paymentTime;
 
     public Payment() {}
 
-    public Payment(String paymentId, String slipId, double fineAmount, String reason) {
-        this.paymentId = paymentId;
-        this.slipId = slipId;
-        this.fineAmount = fineAmount;
-        this.reason = reason;
-    }
-
-    public String getPaymentId() { return paymentId; }
-    public void setPaymentId(String paymentId) { this.paymentId = paymentId; }
-
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
     public String getSlipId() { return slipId; }
     public void setSlipId(String slipId) { this.slipId = slipId; }
-
-    public double getFineAmount() { return fineAmount; }
-    public void setFineAmount(double fineAmount) { this.fineAmount = fineAmount; }
-
-    public String getReason() { return reason; }
-    public void setReason(String reason) { this.reason = reason; }
+    public double getAmount() { return amount; }
+    public void setAmount(double amount) { this.amount = amount; }
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+    public Timestamp getPaymentTime() { return paymentTime; }
+    public void setPaymentTime(Timestamp paymentTime) { this.paymentTime = paymentTime; }
 }
