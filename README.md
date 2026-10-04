@@ -4,20 +4,27 @@ A multi-tier Desktop Application for university library management built with Ja
 
 ---
 
-## Architecture Overview (5-Tier Architecture)
+## Architecture Overview (Closed 4-Layer Architecture with MVC)
 
-The system follows a strict layered architectural pattern to support separation of concerns and team-based parallel development:
+The system adheres strictly to the **Closed 4-Layer Architecture** integrated with the **MVC Pattern** in the Presentation layer, as specified in the Software Engineering course assignment (C6-D1) and SRS Section 5.1:
 
 ```
-src/
-├── db/            # Database scripts, connection manager, configuration
-├── model/         # Domain entities and Data Transfer Objects (DTOs)
-├── repository/    # Data Access Layer using direct JDBC SQL execution
-├── service/       # Business logic layer and global session control
-├── controller/    # Mediators between presentation and business logic
-├── ui/            # Java Swing GUI views and forms
-└── MainApp.java   # Application entry point and pre-flight checks
+[Presentation Layer]     ui/ (View - Swing Forms)  <--->  controller/ (Controller)
+                                      ↓
+[Business Logic Layer]    service/ (Business rules, Transaction Management, Session)
+                                      ↓
+[Data Access Layer]       repository/ (Pure JDBC SQL execution via PreparedStatement)
+                                      ↓
+[Database Layer]          MySQL Database (quan_li_thu_vien schema via src/db/)
+
+[Shared Domain Objects]   model/ (Domain Entities & Data Transfer Objects - DTOs)
+[Application Bootstrap]   MainApp.java (Entry point, pre-flight checks, look & feel)
 ```
+
+**Architectural Rules:**
+- **Closed Architecture**: Each layer communicates strictly with its immediately adjacent layer below. Direct bypasses (e.g. `ui/` directly invoking `repository/`) and reverse calls are strictly forbidden.
+- **MVC in Presentation**: Views (`ui/`) and Domain Models do not interact directly; all user interactions and navigation are orchestrated through the `controller/` layer.
+- **Standards & Guidelines**: See [CODING_STANDARDS.md](CODING_STANDARDS.md) and [PROJECT_PLAN.md](PROJECT_PLAN.md) for naming conventions, traceability comment formats, and branch policies.
 
 ---
 
