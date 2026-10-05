@@ -21,14 +21,19 @@ public class SearchService {
      * Business Rule: Từ khóa không được rỗng
      * =========================================================================
      */
-    public List<Book> searchBooks(String keyword) throws SQLException {
+    public List<Book> searchBooks(String keyword)
+            throws SQLException {
 
-        if (keyword == null || keyword.trim().isEmpty()) {
+        if (keyword == null
+                || keyword.trim().isEmpty()) {
+
             throw new IllegalArgumentException(
                     "Từ khóa tìm kiếm không được để trống."
             );
         }
 
-        return bookRepository.searchBooks(keyword.trim());
+        return bookRepository.searchBooks(
+                keyword.trim()
+        );
     }
 }

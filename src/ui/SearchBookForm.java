@@ -6,6 +6,8 @@ import model.Book;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -18,6 +20,9 @@ public class SearchBookForm extends JFrame {
     private DefaultTableModel tableModel;
 
     private final SearchController searchController;
+
+    // Lưu danh sách Book tương ứng với các dòng đang hiển thị
+    private List<Book> danhSachSachHienTai;
 
     public SearchBookForm() {
 
@@ -35,15 +40,21 @@ public class SearchBookForm extends JFrame {
     private void khoiTaoGiaoDien() {
 
         setTitle("Tra cứu sách - Library Management System");
+
         setSize(900, 600);
+
         setLocationRelativeTo(null);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        setDefaultCloseOperation(
+                JFrame.DISPOSE_ON_CLOSE
+        );
 
         // =========================================================
         // PANEL CHÍNH
         // =========================================================
 
-        JPanel panelChinh = new JPanel(new BorderLayout(10, 10));
+        JPanel panelChinh =
+                new JPanel(new BorderLayout(10, 10));
 
         panelChinh.setBorder(
                 BorderFactory.createEmptyBorder(
@@ -58,10 +69,15 @@ public class SearchBookForm extends JFrame {
         // TIÊU ĐỀ
         // =========================================================
 
-        JLabel lblTieuDe = new JLabel("TRA CỨU SÁCH");
+        JLabel lblTieuDe =
+                new JLabel("TRA CỨU SÁCH");
 
         lblTieuDe.setFont(
-                new Font("Arial", Font.BOLD, 26)
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        26
+                )
         );
 
         lblTieuDe.setHorizontalAlignment(
@@ -77,44 +93,66 @@ public class SearchBookForm extends JFrame {
         // PANEL NỘI DUNG
         // =========================================================
 
-        JPanel panelNoiDung = new JPanel(
-                new BorderLayout(10, 10)
-        );
+        JPanel panelNoiDung =
+                new JPanel(
+                        new BorderLayout(10, 10)
+                );
 
         // =========================================================
         // PANEL TÌM KIẾM
         // =========================================================
 
-        JPanel panelTimKiem = new JPanel(
-                new FlowLayout(
-                        FlowLayout.LEFT,
-                        10,
-                        10
+        JPanel panelTimKiem =
+                new JPanel(
+                        new FlowLayout(
+                                FlowLayout.LEFT,
+                                10,
+                                10
+                        )
+                );
+
+        JLabel lblTuKhoa =
+                new JLabel("Từ khóa:");
+
+        lblTuKhoa.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        16
                 )
         );
 
-        JLabel lblTuKhoa = new JLabel("Từ khóa:");
-
-        lblTuKhoa.setFont(
-                new Font("Arial", Font.PLAIN, 16)
-        );
-
-        txtTuKhoa = new JTextField(30);
+        txtTuKhoa =
+                new JTextField(30);
 
         txtTuKhoa.setFont(
-                new Font("Arial", Font.PLAIN, 16)
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        16
+                )
         );
 
-        btnTimKiem = new JButton("Tìm kiếm");
+        btnTimKiem =
+                new JButton("Tìm kiếm");
 
         btnTimKiem.setFont(
-                new Font("Arial", Font.BOLD, 14)
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
         );
 
-        btnXoa = new JButton("Xóa");
+        btnXoa =
+                new JButton("Xóa");
 
         btnXoa.setFont(
-                new Font("Arial", Font.BOLD, 14)
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
         );
 
         panelTimKiem.add(lblTuKhoa);
@@ -128,7 +166,7 @@ public class SearchBookForm extends JFrame {
         );
 
         // =========================================================
-        // BẢNG DANH SÁCH SÁCH
+        // BẢNG SÁCH
         // =========================================================
 
         String[] tenCot = {
@@ -138,43 +176,51 @@ public class SearchBookForm extends JFrame {
                 "Số lượng còn"
         };
 
-        tableModel = new DefaultTableModel(
-                tenCot,
-                0
-        ) {
+        tableModel =
+                new DefaultTableModel(
+                        tenCot,
+                        0
+                ) {
 
-            @Override
-            public boolean isCellEditable(
-                    int row,
-                    int column
-            ) {
-                return false;
-            }
-        };
+                    @Override
+                    public boolean isCellEditable(
+                            int row,
+                            int column
+                    ) {
+                        return false;
+                    }
+                };
 
-        tblSach = new JTable(tableModel);
+        tblSach =
+                new JTable(tableModel);
 
         tblSach.setFont(
-                new Font("Arial", Font.PLAIN, 14)
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        14
+                )
         );
 
         tblSach.setRowHeight(30);
 
         tblSach.getTableHeader().setFont(
-                new Font("Arial", Font.BOLD, 14)
+                new Font(
+                        "Arial",
+                        Font.BOLD,
+                        14
+                )
         );
 
         tblSach.setSelectionMode(
                 ListSelectionModel.SINGLE_SELECTION
         );
 
-        JScrollPane scrollPane = new JScrollPane(
-                tblSach
-        );
+        JScrollPane scrollPane =
+                new JScrollPane(tblSach);
 
-        JPanel panelBang = new JPanel(
-                new BorderLayout()
-        );
+        JPanel panelBang =
+                new JPanel(new BorderLayout());
 
         panelBang.setBorder(
                 BorderFactory.createTitledBorder(
@@ -193,7 +239,7 @@ public class SearchBookForm extends JFrame {
         );
 
         // =========================================================
-        // THÊM PANEL NỘI DUNG VÀO PANEL CHÍNH
+        // THÊM NỘI DUNG VÀO PANEL CHÍNH
         // =========================================================
 
         panelChinh.add(
@@ -206,29 +252,55 @@ public class SearchBookForm extends JFrame {
 
     /**
      * =========================================================================
-     * Gán sự kiện cho các nút
+     * Gán sự kiện cho giao diện
      * =========================================================================
      */
     private void ganSuKien() {
 
         // Nút Tìm kiếm
-        btnTimKiem.addActionListener(e -> xuLyTimKiem());
+        btnTimKiem.addActionListener(
+                e -> xuLyTimKiem()
+        );
 
         // Nhấn Enter trong ô tìm kiếm
-        txtTuKhoa.addActionListener(e -> xuLyTimKiem());
+        txtTuKhoa.addActionListener(
+                e -> xuLyTimKiem()
+        );
 
         // Nút Xóa
-        btnXoa.addActionListener(e -> xuLyXoa());
+        btnXoa.addActionListener(
+                e -> xuLyXoa()
+        );
+
+        // Double-click vào dòng sách để xem chi tiết
+        tblSach.addMouseListener(
+                new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(
+                            MouseEvent e
+                    ) {
+
+                        if (e.getClickCount() == 2
+                                && SwingUtilities
+                                .isLeftMouseButton(e)) {
+
+                            xuLyXemChiTiet();
+                        }
+                    }
+                }
+        );
     }
 
     /**
      * =========================================================================
-     * Xử lý chức năng tìm kiếm
+     * Xử lý tìm kiếm sách
      * =========================================================================
      */
     private void xuLyTimKiem() {
 
-        String tuKhoa = txtTuKhoa.getText().trim();
+        String tuKhoa =
+                txtTuKhoa.getText().trim();
 
         // Kiểm tra từ khóa
         if (tuKhoa.isEmpty()) {
@@ -248,13 +320,19 @@ public class SearchBookForm extends JFrame {
         try {
 
             // =====================================================
-            // UI → CONTROLLER
+            // UI → Controller
             // =====================================================
 
             List<Book> danhSachSach =
-                    searchController.searchBooks(tuKhoa);
+                    searchController.searchBooks(
+                            tuKhoa
+                    );
 
-            // Xóa kết quả cũ
+            // Lưu danh sách sách hiện tại
+            danhSachSachHienTai =
+                    danhSachSach;
+
+            // Xóa dữ liệu cũ
             xoaDuLieuBang();
 
             // =====================================================
@@ -274,7 +352,7 @@ public class SearchBookForm extends JFrame {
             }
 
             // =====================================================
-            // Không tìm thấy
+            // Không tìm thấy kết quả
             // =====================================================
 
             if (danhSachSach.isEmpty()) {
@@ -322,12 +400,14 @@ public class SearchBookForm extends JFrame {
 
         xoaDuLieuBang();
 
+        danhSachSachHienTai = null;
+
         txtTuKhoa.requestFocus();
     }
 
     /**
      * =========================================================================
-     * Xóa toàn bộ dữ liệu trong bảng
+     * Xóa dữ liệu trong bảng
      * =========================================================================
      */
     private void xoaDuLieuBang() {
@@ -337,7 +417,137 @@ public class SearchBookForm extends JFrame {
 
     /**
      * =========================================================================
-     * Hiển thị một sách vào bảng
+     * Xem chi tiết sách
+     * =========================================================================
+     *
+     * Người dùng double-click vào một dòng sách.
+     * Hệ thống lấy Book tương ứng và hiển thị mô tả.
+     */
+    private void xuLyXemChiTiet() {
+
+        int dongDuocChon =
+                tblSach.getSelectedRow();
+
+        // Không có dòng nào được chọn
+        if (dongDuocChon < 0) {
+            return;
+        }
+
+        // Kiểm tra danh sách dữ liệu hiện tại
+        if (danhSachSachHienTai == null
+                || dongDuocChon
+                >= danhSachSachHienTai.size()) {
+
+            return;
+        }
+
+        // Lấy Book tương ứng với dòng được chọn
+        Book book =
+                danhSachSachHienTai.get(
+                        dongDuocChon
+                );
+
+        // =========================================================
+        // Lấy mô tả
+        // =========================================================
+
+        String moTa =
+                book.getDescription();
+
+        if (moTa == null
+                || moTa.trim().isEmpty()) {
+
+            moTa =
+                    "Chưa có mô tả cho sách này.";
+        }
+
+        // =========================================================
+        // Tạo vùng hiển thị mô tả
+        // =========================================================
+
+        JTextArea txtMoTa =
+                new JTextArea(moTa);
+
+        txtMoTa.setLineWrap(true);
+
+        txtMoTa.setWrapStyleWord(true);
+
+        txtMoTa.setEditable(false);
+
+        txtMoTa.setFont(
+                new Font(
+                        "Arial",
+                        Font.PLAIN,
+                        14
+                )
+        );
+
+        JScrollPane scrollPane =
+                new JScrollPane(txtMoTa);
+
+        scrollPane.setPreferredSize(
+                new Dimension(
+                        450,
+                        180
+                )
+        );
+
+        // =========================================================
+        // Tạo panel chi tiết
+        // =========================================================
+
+        JPanel panelChiTiet =
+                new JPanel(
+                        new BorderLayout(
+                                10,
+                                10
+                        )
+                );
+
+        JLabel lblThongTin =
+                new JLabel(
+                        "<html>"
+                                + "<b>Mã sách:</b> "
+                                + book.getBookId()
+                                + "<br>"
+                                + "<b>Tên sách:</b> "
+                                + book.getTitle()
+                                + "<br>"
+                                + "<b>Tác giả:</b> "
+                                + book.getAuthor()
+                                + "<br>"
+                                + "<b>Số lượng còn:</b> "
+                                + book.getStockQuantity()
+                                + "<br><br>"
+                                + "<b>Mô tả:</b>"
+                                + "</html>"
+                );
+
+        panelChiTiet.add(
+                lblThongTin,
+                BorderLayout.NORTH
+        );
+
+        panelChiTiet.add(
+                scrollPane,
+                BorderLayout.CENTER
+        );
+
+        // =========================================================
+        // Hiển thị cửa sổ chi tiết
+        // =========================================================
+
+        JOptionPane.showMessageDialog(
+                this,
+                panelChiTiet,
+                "Chi tiết sách",
+                JOptionPane.INFORMATION_MESSAGE
+        );
+    }
+
+    /**
+     * =========================================================================
+     * Hiển thị một kết quả vào bảng
      * =========================================================================
      */
     public void hienThiKetQua(
@@ -359,12 +569,14 @@ public class SearchBookForm extends JFrame {
 
     /**
      * =========================================================================
-     * Xóa kết quả tìm kiếm
+     * Xóa kết quả cũ
      * =========================================================================
      */
     public void xoaKetQuaCu() {
 
         tableModel.setRowCount(0);
+
+        danhSachSachHienTai = null;
     }
 
     /**
@@ -374,12 +586,14 @@ public class SearchBookForm extends JFrame {
      */
     public static void main(String[] args) {
 
-        SwingUtilities.invokeLater(() -> {
+        SwingUtilities.invokeLater(
+                () -> {
 
-            SearchBookForm form =
-                    new SearchBookForm();
+                    SearchBookForm form =
+                            new SearchBookForm();
 
-            form.setVisible(true);
-        });
+                    form.setVisible(true);
+                }
+        );
     }
 }

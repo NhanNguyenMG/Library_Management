@@ -24,7 +24,7 @@ public class BookRepository {
         List<Book> books = new ArrayList<>();
 
         String sql = """
-                SELECT ma_dau_sach, tac_sach, tac_gia, so_luong_con
+                SELECT ma_dau_sach, tac_sach, tac_gia, so_luong_con, mo_ta
                 FROM dau_sach
                 WHERE ma_dau_sach LIKE ?
                    OR tac_sach LIKE ?
@@ -32,9 +32,11 @@ public class BookRepository {
                 ORDER BY tac_sach
                 """;
 
-        Connection connection = DBConnection.getInstance().getConnection();
+        Connection connection =
+                DBConnection.getInstance().getConnection();
 
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement(sql)) {
 
             String searchKeyword = "%" + keyword.trim() + "%";
 
@@ -42,7 +44,8 @@ public class BookRepository {
             preparedStatement.setString(2, searchKeyword);
             preparedStatement.setString(3, searchKeyword);
 
-            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+            try (ResultSet resultSet =
+                         preparedStatement.executeQuery()) {
 
                 while (resultSet.next()) {
 
@@ -50,7 +53,8 @@ public class BookRepository {
                             resultSet.getString("ma_dau_sach"),
                             resultSet.getString("tac_sach"),
                             resultSet.getString("tac_gia"),
-                            resultSet.getInt("so_luong_con")
+                            resultSet.getInt("so_luong_con"),
+                            resultSet.getString("mo_ta")
                     );
 
                     books.add(book);
