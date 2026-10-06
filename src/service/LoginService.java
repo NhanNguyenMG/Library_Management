@@ -33,6 +33,9 @@ public class LoginService {
             throw new Exception("Tài khoản đã bị khóa hoặc không hoạt động.");
         }
 
+        // Tích hợp với SessionManager để lưu thông tin phiên làm việc
+        authenticate(account);
+
         // Trả về thông tin tài khoản nếu đăng nhập thành công
         return account;
     }
