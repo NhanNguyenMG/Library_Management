@@ -1,11 +1,3 @@
--- =====================================================================
--- DỰ ÁN: HỆ THỐNG QUẢN LÝ THƯ VIỆN (LIBRARY MANAGEMENT SYSTEM)
--- MÔN HỌC: CÔNG NGHỆ PHẦN MỀM (SOEN330679)
--- FILE TỔNG HỢP: setup_database.sql (1-CLICK SETUP)
--- BAO GỒM: TẠO DATABASE -> TẠO BẢNG -> TẠO INDEX -> CHÈN SEED DATA
--- NGƯỜI THỰC HIỆN: Người số 5 (Hạ tầng chung & CSDL)
--- ĐÃ CHUẨN HÓA THEO CODING_STANDARDS.md & PROJECT_PLAN.md
--- =====================================================================
 
 -- -------------------------------------------------------------
 -- PHẦN 1: KHỞI TẠO CƠ SỞ DỮ LIỆU

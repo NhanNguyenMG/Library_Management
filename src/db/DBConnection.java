@@ -8,22 +8,6 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-/**
- * =========================================================================
- * Kiến trúc: Closed 4-Layer Architecture - Tầng Database Access Infrastructure
- * Thiết kế Mẫu: Singleton Pattern (Mục 5.1 & Class Diagram SRS)
- * Ràng buộc kỹ thuật: JDBC thuần (PreparedStatement, Không dùng ORM/Hibernate)
- * Traceability Element: Bộ cung cấp kết nối CSDL duy nhất cho toàn bộ Repository
- * 
- * Nhiệm vụ:
- * 1. Khởi tạo và nạp MySQL JDBC Driver (mysql-connector-j-8.3.0.jar).
- * 2. Đọc cấu hình kết nối từ file db.properties (hỗ trợ nhiều cấp thư mục).
- * 3. Duy trì một kết nối duy nhất (Singleton), tự động kết nối lại nếu bị ngắt.
- * 4. Cung cấp hàm kiểm tra kết nối testConnection() trước khi khởi động giao diện.
- * =========================================================================
- * 
- * @author Người số 5 (Hạ tầng chung & CSDL)
- */
 public class DBConnection {
 
     // 1. Biến static duy nhất lưu trữ thể hiện (instance) của lớp
@@ -46,13 +30,7 @@ public class DBConnection {
         initDriver();
     }
 
-    /**
-     * Tải cấu hình từ file db.properties.
-     * Thứ tự ưu tiên tìm kiếm:
-     * 1. Classpath (resources)
-     * 2. Thư mục hiện tại (project root)
-     * 3. Thư mục src/db/db.properties
-     */
+
     private void loadConfiguration() {
         Properties props = new Properties();
         boolean loaded = false;

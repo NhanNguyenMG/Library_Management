@@ -1,9 +1,3 @@
--- =====================================================================
--- DỰ ÁN: HỆ THỐNG QUẢN LÝ THƯ VIỆN (LIBRARY MANAGEMENT SYSTEM)
--- MÔN HỌC: CÔNG NGHỆ PHẦN MỀM (SOEN330679)
--- FILE: seed_data.sql (Dữ liệu mẫu phục vụ kiểm thử hệ thống)
--- NGƯỜI THỰC HIỆN: Người số 5 (Hạ tầng chung & CSDL)
--- =====================================================================
 
 USE quan_li_thu_vien;
 
