@@ -13,11 +13,7 @@ import java.util.List;
 public class BookRepository {
 
     /**
-     * =========================================================================
-     * Use Case: UC-02 Tra cứu tài liệu
-     * Traceability: Truy vấn bảng dau_sach theo mã sách, tên sách hoặc tác giả
-     * Database Table: dau_sach
-     * =========================================================================
+     * Tìm kiếm sách theo từ khóa (mã sách, tên sách hoặc tác giả)
      */
     public List<Book> searchBooks(String keyword) throws SQLException {
 
@@ -66,10 +62,7 @@ public class BookRepository {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-05, UC-06 Cập nhật số lượng tồn kho đầu sách
-     * Database Table: dau_sach
-     * =========================================================================
+     * Tăng số lượng tồn kho của đầu sách
      *
      * @param bookId mã đầu sách
      * @param quantity số lượng sách tăng thêm khi trả
@@ -111,5 +104,30 @@ public class BookRepository {
             }
         }
         return null;
+    }
+
+    /**
+     * Giảm số lượng tồn kho đầu sách khi lập phiếu mượn
+     */
+    public void decreaseStock(String bookId, int quantity, Connection connection) throws SQLException {
+
+        // Điều kiện so_luong_con >= ? đảm bảo tồn kho không bao giờ bị âm
+        String sql = """
+                UPDATE dau_sach
+                SET so_luong_con = so_luong_con - ?
+                WHERE ma_dau_sach = ? AND so_luong_con >= ?
+                """;
+
+        try (PreparedStatement preparedStatement =
+                     connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, quantity);
+            preparedStatement.setString(2, bookId);
+            preparedStatement.setInt(3, quantity);
+
+            if (preparedStatement.executeUpdate() != 1) {
+                throw new SQLException("Đầu sách " + bookId + " không tồn tại hoặc không đủ số lượng để mượn.");
+            }
+        }
     }
 }

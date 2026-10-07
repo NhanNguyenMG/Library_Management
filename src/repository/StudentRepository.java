@@ -10,9 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Tầng: Data Access Layer (repository)
- * Use Case: UC-04 Kiểm tra điều kiện mượn, UC-05 Xử lý trả sách, UC-07 Tính tiền phạt
- * Bảng CSDL: sinh_vien
+ * Repository thao tác với dữ liệu sinh viên
  */
 public class StudentRepository {
 
@@ -104,6 +102,49 @@ public class StudentRepository {
             ps.setInt(1, returnedCount);
             ps.setString(2, studentId);
             ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Cập nhật số sách đang mượn (tăng khi lập phiếu mượn).
+     *
+     * @param studentId mã số sinh viên
+     * @param borrowedCount số lượng sách mượn thêm
+     * @param conn kết nối Transaction đang mở
+     * @throws SQLException nếu ghi CSDL thất bại hoặc không tìm thấy sinh viên
+     */
+    public void increaseBorrowedCount(String studentId, int borrowedCount, Connection conn) throws SQLException {
+        String sql = "UPDATE sinh_vien SET so_sach_dang_muon = so_sach_dang_muon + ? WHERE mssv = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, borrowedCount);
+            ps.setString(2, studentId);
+            if (ps.executeUpdate() != 1) {
+                throw new SQLException("Không tìm thấy sinh viên " + studentId + " để cập nhật số sách đang mượn.");
+            }
+        }
+    }
+
+    /**
+     * Kiểm tra tài khoản của sinh viên có bị khóa không.
+     *
+     * @param studentId mã số sinh viên
+     * @return true nếu tài khoản có trạng thái LOCKED
+     * @throws SQLException nếu xảy ra lỗi truy vấn CSDL
+     */
+    public boolean isAccountLocked(String studentId) throws SQLException {
+        String sql = """
+                SELECT tk.trang_thai
+                FROM sinh_vien sv
+                JOIN tai_khoan tk ON sv.ten_dang_nhap = tk.ten_dang_nhap
+                WHERE sv.mssv = ?
+                """;
+
+        Connection conn = DBConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, studentId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && "LOCKED".equalsIgnoreCase(rs.getString("trang_thai"));
+            }
         }
     }
 }
