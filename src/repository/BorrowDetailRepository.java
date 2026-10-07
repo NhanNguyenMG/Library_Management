@@ -10,28 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =========================================================================
- * Tầng: Data Access Layer (repository/)
- * Use Case: UC-03 Tạo phiếu mượn sách, UC-04 Kiểm tra điều kiện mượn
- * Bảng CSDL: chi_tiet_phieu_muon (id, ma_phieu, ma_dau_sach, so_luong, ghi_chu)
- *
- * Các chức năng chính:
- * Sinh mã chi tiết (CTxxxx)
- * Lưu 1 dòng chi tiết (save)
- * Lưu hàng loạt chi tiết tối ưu query (saveAll)
- * Lấy danh sách sách mượn theo mã phiếu (findBySlipId)
- * Đếm tổng số cuốn sách đang mượn (countBorrowingBooksByStudentId)
- * =========================================================================
- *
- * @author Người số 4 (UC-03, UC-04 Mượn sách)
- */
 public class BorrowDetailRepository {
 
     private static final String DETAIL_ID_PREFIX = "CT";
     private static final int DETAIL_ID_NUMBER_LENGTH = 4;
-
-    // UC-03: LƯU CHI TIẾT PHIẾU MƯỢN
 
     /**
      * 1. Sinh mã chi tiết tiếp theo theo định dạng CTxxxx (ví dụ: CT0004 -> CT0005).
@@ -105,12 +87,10 @@ public class BorrowDetailRepository {
         return borrowDetails;
     }
 
-    // UC-04: KIỂM TRA ĐIỀU KIỆN MƯỢN
-
     /**
      * 5. Đếm tổng số cuốn sách sinh viên đang mượn (thuộc các phiếu chưa trả).
      * Tính trực tiếp từ phiếu mượn thay vì đọc cột sinh_vien.so_sach_dang_muon,
-     * để kết quả luôn đúng với dữ liệu phiếu thực tế (dùng cho hạn mức 5 cuốn - REQ-003).
+     * để kết quả luôn đúng với dữ liệu phiếu thực tế (dùng cho hạn mức 5 cuốn).
      *
      * @param studentId mã số sinh viên (mssv)
      * @return tổng số cuốn đang mượn, 0 nếu không có

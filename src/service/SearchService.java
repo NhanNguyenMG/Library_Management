@@ -15,11 +15,7 @@ public class SearchService {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-02 Tra cứu tài liệu
-     * Traceability: SearchController → SearchService → BookRepository
-     * Business Rule: Từ khóa không được rỗng
-     * =========================================================================
+     * Tra cứu danh sách tài liệu theo từ khóa
      */
     public List<Book> searchBooks(String keyword)
             throws SQLException {

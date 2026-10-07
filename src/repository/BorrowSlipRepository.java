@@ -11,21 +11,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =========================================================================
- * Tầng: Data Access Layer (repository/)
- * Use Case: UC-03 Tạo phiếu mượn sách, UC-04 Kiểm tra điều kiện mượn
- * Bảng CSDL: phieu_muon (ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te)
- *
- * Các chức năng chính:
- * Sinh mã phiếu tự động (PMxxxx)
- * Lưu phiếu mượn mới (save)
- * Tìm phiếu theo mã (findById)
- * Đếm số phiếu quá hạn chưa trả (countOverdueSlipsByStudentId)
- * =========================================================================
- *
- * @author Người số 4 (UC-03, UC-04 Mượn sách)
- */
 public class BorrowSlipRepository {
 
     private static final String SLIP_ID_PREFIX = "PM";
@@ -33,8 +18,6 @@ public class BorrowSlipRepository {
 
     private static final String SELECT_SLIP_COLUMNS =
             "SELECT ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te FROM phieu_muon ";
-
-    // UC-03: TẠO PHIẾU MƯỢN
 
     /**
      * 1. Sinh mã phiếu mượn tiếp theo theo định dạng PMxxxx (ví dụ: PM0003 -> PM0004).
@@ -99,8 +82,6 @@ public class BorrowSlipRepository {
         }
     }
 
-    // UC-04: KIỂM TRA ĐIỀU KIỆN MƯỢN
-
     /**
      * 4. Đếm số phiếu mượn đã quá hạn mà sinh viên chưa trả.
      * Thời điểm so sánh được truyền vào (thay vì dùng NOW() trong SQL)
@@ -122,10 +103,6 @@ public class BorrowSlipRepository {
             }
         }
     }
-
-    // =========================================================================
-    // UC-05: TRẢ SÁCH — Người số 1 bổ sung theo PROJECT_PLAN.md (Giai đoạn 2):
-    // =========================================================================
 
     /**
      * Lấy danh sách các phiếu mượn chưa trả của một sinh viên (ngay_tra_thuc_te IS NULL).
