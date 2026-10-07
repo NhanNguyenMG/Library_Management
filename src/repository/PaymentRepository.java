@@ -10,9 +10,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
- * Tầng: Data Access Layer (repository)
- * Use Case: UC-07 Tính tiền phạt trễ hạn & Thanh toán
- * Bảng CSDL: thanh_toan (ma_giao_dich, ma_phieu, so_tien, phuong_thuc, trang_thai, thoi_gian)
+ * Repository xử lý dữ liệu thanh toán và tiền phạt
  */
 public class PaymentRepository {
 

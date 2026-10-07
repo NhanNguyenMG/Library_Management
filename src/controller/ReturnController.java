@@ -8,12 +8,6 @@ import service.ReturnService;
 import java.sql.Timestamp;
 import java.util.List;
 
-/**
- * Tầng: Controller Layer (controller)
- * Use Case: UC-05 Xử lý trả sách, UC-06 Cập nhật số lượng tồn kho, UC-07 Tính tiền phạt
- * Kiến trúc: Closed 4-Layer Architecture + MVC
- * Vai trò: Tiếp nhận yêu cầu từ ReturnBookForm (UI), ủy quyền xử lý cho ReturnService và trả kết quả về View
- */
 public class ReturnController {
 
     private final ReturnService returnService;
@@ -55,7 +49,7 @@ public class ReturnController {
     }
 
     /**
-     * Xác nhận trả sách, ủy quyền cho ReturnService thực hiện Transaction ACID.
+     * Xác nhận trả sách
      */
     public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
                                        String slipId,

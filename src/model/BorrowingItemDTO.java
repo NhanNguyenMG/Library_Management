@@ -3,9 +3,7 @@ package model;
 import java.sql.Timestamp;
 
 /**
- * Tầng: Model / DTO
- * Use Case: UC-05 Xử lý trả sách (Wireframe Hình 4)
- * Mục đích: Mang dữ liệu dòng sách đang mượn hiển thị lên bảng của ReturnBookForm
+ * Thông tin chi tiết sách đang mượn hiển thị trong bảng trả sách
  */
 public class BorrowingItemDTO {
 

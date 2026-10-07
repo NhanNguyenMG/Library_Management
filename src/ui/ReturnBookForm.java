@@ -26,10 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tầng: Presentation Layer (ui)
- * Use Case: UC-05 Xử lý trả sách, UC-06 Cập nhật tồn kho, UC-07 Tính tiền phạt
- * Thiết kế giao diện: Bám sát 100% Wireframe Hình 4 trong SRS
- * Kiến trúc: Closed 4-Layer Architecture + MVC (chỉ giao tiếp với ReturnController)
+ * Giao diện Xử lý trả sách
  */
 public class ReturnBookForm extends JFrame {
 
@@ -77,10 +74,10 @@ public class ReturnBookForm extends JFrame {
     }
 
     /**
-     * Khởi tạo giao diện đồ họa chuẩn Wireframe Hình 4
+     * Khởi tạo các thành phần giao diện
      */
     private void initComponents() {
-        setTitle("Hệ thống Quản lý Thư viện - Xử lý trả sách (UC-05)");
+        setTitle("Hệ thống Quản lý Thư viện - Xử lý trả sách");
         setSize(960, 680);
         setMinimumSize(new Dimension(860, 600));
         setLocationRelativeTo(null);
@@ -93,7 +90,7 @@ public class ReturnBookForm extends JFrame {
         // 1. THANH HEADER
         mainContainer.add(createHeaderPanel(), BorderLayout.NORTH);
 
-        // 2. THÂN CHÍNH (Chứa 4 khu vực theo Wireframe)
+        // 2. THÂN CHÍNH
         JPanel bodyPanel = new JPanel();
         bodyPanel.setLayout(new BoxLayout(bodyPanel, BoxLayout.Y_AXIS));
         bodyPanel.setOpaque(false);
@@ -132,13 +129,38 @@ public class ReturnBookForm extends JFrame {
         String librarianName = SessionManager.getInstance().isLoggedIn()
                 ? SessionManager.getInstance().getFullName()
                 : "Thủ thư";
-        lblLibrarianName = new JLabel(librarianName + " ▾");
+        lblLibrarianName = new JLabel(librarianName, createDownChevronIcon(9, 6, new Color(80, 80, 80)), SwingConstants.LEFT);
+        lblLibrarianName.setHorizontalTextPosition(SwingConstants.LEFT);
+        lblLibrarianName.setIconTextGap(6);
         lblLibrarianName.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblLibrarianName.setForeground(new Color(60, 60, 60));
 
         panel.add(lblHeaderTitle, BorderLayout.WEST);
         panel.add(lblLibrarianName, BorderLayout.EAST);
         return panel;
+    }
+
+    private static Icon createDownChevronIcon(int width, int height, Color color) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                int midX = x + width / 2;
+                int topY = y + 2;
+                int botY = y + height;
+                g2.drawLine(x, topY, midX, botY);
+                g2.drawLine(midX, botY, x + width, topY);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() { return width; }
+            @Override
+            public int getIconHeight() { return height + 4; }
+        };
     }
 
     /**
@@ -280,7 +302,7 @@ public class ReturnBookForm extends JFrame {
         lblWarningMessage.setForeground(new Color(192, 57, 43)); // Chữ đỏ đậm
 
         panelWarning.add(lblWarningMessage);
-        panelWarning.setVisible(false); // Mặc định ẩn theo Wireframe
+        panelWarning.setVisible(false); // Mặc định ẩn
 
         JPanel container = new JPanel(new BorderLayout());
         container.setOpaque(false);
@@ -290,7 +312,7 @@ public class ReturnBookForm extends JFrame {
     }
 
     /**
-     * 5. Khu vực 4: Thông tin phạt tự động tính
+     * Khu vực 4: Thông tin phạt tự động tính
      */
     private JPanel createArea4FineInformation() {
         JPanel panel = new JPanel(new GridBagLayout());
@@ -332,7 +354,7 @@ public class ReturnBookForm extends JFrame {
     }
 
     /**
-     * 6. Thanh nút bấm phía dưới (Căn phải): Xác nhận trả (xanh), Hủy (xám)
+     * Thanh nút bấm phía dưới: Xác nhận trả (xanh), Hủy (xám)
      */
     private JPanel createBottomActionPanel() {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 8));
@@ -342,7 +364,7 @@ public class ReturnBookForm extends JFrame {
         btnConfirmReturn = new JButton("Xác nhận trả");
         btnConfirmReturn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnConfirmReturn.setPreferredSize(new Dimension(150, 40));
-        btnConfirmReturn.setBackground(new Color(163, 217, 165)); // Xanh nhạt Wireframe
+        btnConfirmReturn.setBackground(new Color(163, 217, 165));
         btnConfirmReturn.setForeground(new Color(20, 60, 20));
         btnConfirmReturn.setFocusPainted(false);
         btnConfirmReturn.setEnabled(false); // Khóa nếu chưa quét cuốn nào
@@ -374,14 +396,20 @@ public class ReturnBookForm extends JFrame {
         return border;
     }
 
-    // =========================================================================
-    // XỬ LÝ SỰ KIỆN GIAO DIỆN (THEO BẢNG 14 & SEQUENCE DIAGRAM SRS)
-    // =========================================================================
+    // Xử lý sự kiện giao diện
 
     /**
-     * Sự kiện onLoad: Tự động focus vào ô nhập mã thẻ sinh viên
+     * Sự kiện onLoad: Kiểm tra quyền truy cập và focus vào ô nhập mã thẻ sinh viên
      */
     private void onLoad() {
+        SessionManager session = SessionManager.getInstance();
+        if (!session.isLibrarian() && !session.isManager()) {
+            JOptionPane.showMessageDialog(this,
+                    "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản Thủ thư hoặc Quản lý.",
+                    "Từ chối truy cập", JOptionPane.ERROR_MESSAGE);
+            SwingUtilities.invokeLater(this::dispose);
+            return;
+        }
         SwingUtilities.invokeLater(() -> txtStudentId.requestFocusInWindow());
     }
 
@@ -548,8 +576,8 @@ public class ReturnBookForm extends JFrame {
 
         String slipId = scannedList.get(0).getSlipId();
         String librarianId = SessionManager.getInstance().getUserId();
-        if (librarianId == null || librarianId.isEmpty()) {
-            librarianId = "NV0001"; // Mặc định nếu chạy test chưa login
+        if (librarianId == null || librarianId.isEmpty() || librarianId.startsWith("QL")) {
+            librarianId = "TT0001"; // Mặc định thủ thư TT0001 nếu Quản lý thực hiện hoặc chưa đăng nhập
         }
 
         // Vô hiệu hóa nút trong lúc xử lý
@@ -666,6 +694,12 @@ public class ReturnBookForm extends JFrame {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}
+
+        SessionManager session = SessionManager.getInstance();
+        if (!session.isLoggedIn()) {
+            session.login("thuthu01", SessionManager.ROLE_LIBRARIAN, "TT0001",
+                    "Trần Thị Mai", "thuthu01@thuvien.edu.vn");
+        }
 
         SwingUtilities.invokeLater(() -> {
             ReturnBookForm form = new ReturnBookForm();

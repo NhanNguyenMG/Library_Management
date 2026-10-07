@@ -79,10 +79,106 @@ public class LoginForm extends JFrame {
         btnLogin.setPreferredSize(new Dimension(140, 35));
         panel.add(btnLogin, gbc);
 
+        // 4. Panel tài khoản kiểm thử nhanh bên dưới
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(15, 5, 5, 5);
+
+        JPanel testAccountsPanel = createTestAccountsPanel();
+        panel.add(testAccountsPanel, gbc);
+
         add(panel);
 
-        // Bắt sự kiện khi click nút Đăng nhập
+        // Bắt sự kiện khi click nút Đăng nhập hoặc ấn phím Enter
         btnLogin.addActionListener(this::btnConfirmActionPerformed);
+        txtPassword.addActionListener(this::btnConfirmActionPerformed);
+        txtUsername.addActionListener(e -> txtPassword.requestFocusInWindow());
+        setSize(480, 440);
+        setLocationRelativeTo(null);
+    }
+
+    /**
+     * Tạo bảng danh sách 3 tài khoản kiểm thử theo yêu cầu
+     */
+    private JPanel createTestAccountsPanel() {
+        JPanel container = new JPanel();
+        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
+        container.setBackground(new Color(248, 250, 252));
+        container.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(10, 12, 10, 12)
+        ));
+
+        JLabel lblTitle = new JLabel("Tài khoản kiểm thử nhanh (Click để tự động điền):");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitle.setForeground(new Color(71, 85, 105));
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        container.add(lblTitle);
+        container.add(Box.createVerticalStrut(8));
+
+        // 3 tài khoản mẫu
+        container.add(createAccountRow("Quản lý:", "admin", "admin123", new Color(124, 58, 237)));
+        container.add(Box.createVerticalStrut(5));
+        container.add(createAccountRow("Thủ thư:", "thuthu01", "thuthu123", new Color(2, 132, 199)));
+        container.add(Box.createVerticalStrut(5));
+        container.add(createAccountRow("Sinh viên:", "sv001", "123456", new Color(16, 185, 129)));
+
+        return container;
+    }
+
+    private JPanel createAccountRow(String roleLabel, String username, String password, Color badgeColor) {
+        JPanel row = new JPanel(new BorderLayout(8, 0));
+        row.setBackground(Color.WHITE);
+        row.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(226, 232, 240), 1, true),
+                new EmptyBorder(6, 10, 6, 10)
+        ));
+        row.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Badge vai trò
+        JLabel lblRole = new JLabel(roleLabel);
+        lblRole.setFont(new Font("Segoe UI", Font.BOLD, 11));
+        lblRole.setForeground(badgeColor);
+        lblRole.setPreferredSize(new Dimension(75, 18));
+
+        // Thông tin tài khoản
+        JLabel lblInfo = new JLabel(username + "  /  " + password);
+        lblInfo.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        lblInfo.setForeground(new Color(30, 41, 59));
+
+        JLabel lblHint = new JLabel("Chọn >>");
+        lblHint.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        lblHint.setForeground(new Color(148, 163, 184));
+
+        row.add(lblRole, BorderLayout.WEST);
+        row.add(lblInfo, BorderLayout.CENTER);
+        row.add(lblHint, BorderLayout.EAST);
+
+        // Sự kiện click tự động điền
+        row.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                row.setBackground(new Color(241, 245, 249));
+                lblHint.setForeground(badgeColor);
+            }
+
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                row.setBackground(Color.WHITE);
+                lblHint.setForeground(new Color(148, 163, 184));
+            }
+
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                txtUsername.setText(username);
+                txtPassword.setText(password);
+                txtPassword.requestFocusInWindow();
+            }
+        });
+
+        return row;
     }
 
     private void btnConfirmActionPerformed(ActionEvent e) {

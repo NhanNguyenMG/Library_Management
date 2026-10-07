@@ -144,11 +144,11 @@ public class ReturnService {
     }
 
     /**
-     * Xác nhận trả sách với giao dịch Database Transaction (ACID).
+     * Xác nhận trả sách với giao dịch Database Transaction.
      * Thực hiện:
-     * 1. Cập nhật ngày trả thực tế cho phiếu mượn (UC-05).
-     * 2. Tăng số lượng tồn kho đầu sách được trả (UC-06).
-     * 3. Tạo bản ghi thanh toán phạt và cộng nợ sinh viên nếu có trễ hạn/hỏng (UC-07).
+     * 1. Cập nhật ngày trả thực tế cho phiếu mượn.
+     * 2. Tăng số lượng tồn kho đầu sách được trả.
+     * 3. Tạo bản ghi thanh toán phạt và cộng nợ sinh viên nếu có trễ hạn/hỏng.
      * 4. Giảm số lượng sách đang mượn của sinh viên.
      *
      * @param scannedItems danh sách các cuốn sách đã quét
@@ -187,7 +187,7 @@ public class ReturnService {
                 throw new SQLException("Không thể cập nhật ngày trả cho phiếu mượn: " + slipId);
             }
 
-            // 2. Cập nhật tồn kho (UC-06) cho các đầu sách được trả
+            // 2. Cập nhật tồn kho cho các đầu sách được trả
             int totalReturnedCount = 0;
             for (BorrowingItemDTO item : validScanned) {
                 // Nếu sách bị mất thì không tăng lại vào kho, nếu tốt hoặc hư hỏng thì trả về kho
@@ -200,7 +200,7 @@ public class ReturnService {
                 totalReturnedCount += item.getQuantity();
             }
 
-            // 3. Tính toán trễ hạn & tiền phạt (UC-07)
+            // 3. Tính toán trễ hạn & tiền phạt
             Timestamp dueDate = validScanned.get(0).getDueDate();
             long lateDays = calculateLateDays(dueDate, now);
             double totalCompFee = validScanned.stream()

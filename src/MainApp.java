@@ -4,19 +4,6 @@ import service.SessionManager;
 import javax.swing.*;
 import java.awt.*;
 
-/**
- * =========================================================================
- * Module: Điểm khởi chạy ứng dụng Desktop (Application Entry Point)
- * Kiến trúc: Closed 4-Layer Architecture - Pre-flight Health Check
- * Luồng khởi động:
- *   1. Cài đặt System Look and Feel và bật Antialiasing làm mịn font chữ.
- *   2. Kiểm tra sức khỏe kết nối CSDL MySQL (pre-flight testConnection).
- *   3. Điều hướng mở màn hình Đăng nhập (ui.LoginForm - UC-01 do Người 2 phụ trách).
- *   4. Hiển thị Dashboard Hạ tầng tổng quan nếu màn hình LoginForm chưa hoàn thành.
- * =========================================================================
- * 
- * @author Người số 5 (Hạ tầng chung & CSDL)
- */
 public class MainApp {
 
     public static final String APP_TITLE = "HỆ THỐNG QUẢN LÝ THƯ VIỆN";
@@ -93,9 +80,7 @@ public class MainApp {
     }
 
     /**
-     * Mở LoginForm (UC-01). 
-     * Sử dụng Reflection an toàn: nếu LoginForm.java đã được compile thì mở,
-     * nếu Người 2 chưa hoàn thiện thì hiển thị Dashboard tổng quan hạ tầng chung.
+     * Mở màn hình đăng nhập LoginForm.
      */
     public static void openLoginForm() {
         try {
@@ -105,7 +90,7 @@ public class MainApp {
             loginFrame.setVisible(true);
             return;
         } catch (ClassNotFoundException e) {
-            System.out.println("[MainApp] Form ui.LoginForm chưa có sẵn, hiển thị Dashboard Hạ tầng chẩn đoán...");
+            System.out.println("[MainApp] Form ui.LoginForm chưa có sẵn, hiển thị màn hình kiểm tra hệ thống...");
         } catch (Exception e) {
             System.err.println("[MainApp LỖI khởi chạy LoginForm]: " + e.getMessage());
             e.printStackTrace();
@@ -116,8 +101,7 @@ public class MainApp {
     }
 
     /**
-     * Màn hình Tổng quan Hạ tầng chung do Người số 5 xây dựng.
-     * Cung cấp nút Test kết nối DB, hiển thị trạng thái Session, và các thông tin cấu hình.
+     * Màn hình Tổng quan cấu hình hệ thống.
      */
     private static void showInfrastructureOverviewWindow() {
         JFrame frame = new JFrame(APP_TITLE + " - " + APP_VERSION);
@@ -130,11 +114,11 @@ public class MainApp {
 
         // Tiêu đề
         JPanel headerPanel = new JPanel(new GridLayout(2, 1, 5, 5));
-        JLabel titleLabel = new JLabel("HỆ THỐNG QUẢN LÝ THƯ VIỆN - MODULE HẠ TẦNG DÙNG CHUNG", SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel("HỆ THỐNG QUẢN LÝ THƯ VIỆN - TRẠNG THÁI HỆ THỐNG", SwingConstants.CENTER);
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(new Color(24, 76, 120));
         
-        JLabel subtitleLabel = new JLabel("Phân công: Người số 5 (DBConnection, SessionManager, MainApp, CSDL MySQL)", SwingConstants.CENTER);
+        JLabel subtitleLabel = new JLabel("Hệ thống quản lý thư viện - Trạng thái cấu hình", SwingConstants.CENTER);
         subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         subtitleLabel.setForeground(Color.DARK_GRAY);
 
@@ -150,14 +134,12 @@ public class MainApp {
         statusArea.setBorder(BorderFactory.createLineBorder(new Color(220, 224, 230)));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("=================================================================\n");
-        sb.append(" KIỂM TRA TRẠNG THÁI HẠ TẦNG HỆ THỐNG (SYSTEM PRE-FLIGHT CHECK)\n");
-        sb.append("=================================================================\n\n");
+        sb.append("KIỂM TRA TRẠNG THÁI HỆ THỐNG\n\n");
         
         boolean dbStatus = DBConnection.getInstance().testConnection(2);
         sb.append("1. TRẠNG THÁI KẾT NỐI CSDL MYSQL:\n");
         if (dbStatus) {
-            sb.append("   -> KẾT NỐI: [ THÀNH CÔNG RỰC RỠ ]\n");
+            sb.append("   -> KẾT NỐI: [ THÀNH CÔNG ]\n");
             sb.append("   -> Cơ sở dữ liệu: quan_li_thu_vien\n");
             sb.append("   -> Driver: com.mysql.cj.jdbc.Driver (MySQL Connector/J 8.3.0)\n\n");
         } else {
@@ -166,18 +148,15 @@ public class MainApp {
         }
 
         SessionManager session = SessionManager.getInstance();
-        sb.append("2. TRẠNG THÁI BỘ QUẢN LÝ PHIÊN (SESSION MANAGER):\n");
+        sb.append("2. TRẠNG THÁI PHIÊN ĐĂNG NHẬP (SESSION MANAGER):\n");
         sb.append("   -> Trạng thái đăng nhập: ").append(session.isLoggedIn() ? "Đã đăng nhập" : "Chưa đăng nhập (Khách)").append("\n");
         sb.append("   -> Người dùng hiện tại: ").append(session.getDisplayNameWithRole()).append("\n\n");
 
-        sb.append("3. TIẾN ĐỘ KIẾN TRÚC 4 TẦNG ĐÓNG (CLOSED 4-LAYER):\n");
-        sb.append("   -> [x] Tầng Database (src/db/): QLTV.sql, ThuVien_Indexes.sql, seed_data.sql\n");
-        sb.append("   -> [x] Tầng Hạ tầng cốt lõi: DBConnection.java, SessionManager.java, MainApp.java\n");
-        sb.append("   -> [ ] Tầng Model: Người 6 đang thực hiện (8 Entity Models + 2 DTOs)\n");
-        sb.append("   -> [ ] UC-01 Đăng nhập: Người 2 (LoginForm, LoginService, AccountRepo)\n");
-        sb.append("   -> [ ] UC-02 Tra cứu sách: Người 3 (SearchBookForm, SearchService, BookRepo)\n");
-        sb.append("   -> [ ] UC-03/04 Mượn sách: Người 4 (BorrowForm, BorrowService, SlipRepo)\n");
-        sb.append("   -> [ ] UC-05/06/07 Trả sách: Người 1 (ReturnBookForm, ReturnService, PaymentRepo)\n");
+        sb.append("3. DANH SÁCH CHỨC NĂNG HỆ THỐNG:\n");
+        sb.append("   -> Đăng nhập và phân quyền người dùng\n");
+        sb.append("   -> Tra cứu thông tin sách\n");
+        sb.append("   -> Lập phiếu mượn sách\n");
+        sb.append("   -> Trả sách và xử lý phí phạt\n");
 
         statusArea.setText(sb.toString());
         mainPanel.add(new JScrollPane(statusArea), BorderLayout.CENTER);
