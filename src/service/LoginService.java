@@ -8,12 +8,7 @@ public class LoginService {
     private final AccountRepository accountRepo = new AccountRepository();
 
     /**
-     * =========================================================================
-     * Use Case: UC-01 Đăng nhập
-     * Sequence Diagram: sd DangNhap (SRS)
-     * Traceability Message: message #1 - loginService.login()
-     * Test Case tương ứng: TC-01, TC-02
-     * =========================================================================
+     * Kiểm tra thông tin đăng nhập của người dùng
      */
     public Account login(String username, String password) throws Exception {
         Account account = accountRepo.findByUsername(username);

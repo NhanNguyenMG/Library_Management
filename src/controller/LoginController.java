@@ -3,7 +3,13 @@ package controller;
 import model.Account;
 import service.LoginService;
 import service.SessionManager;
+import ui.DashboardForm;
+import ui.LoginForm;
+import ui.SearchBookForm;
+
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 public class LoginController {
 
@@ -14,26 +20,18 @@ public class LoginController {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-01 Đăng nhập
-     * Sequence Diagram: sd DangNhap (SRS)
-     * Traceability Message: message #2 - loginController.login()
-     * Test Case tương ứng: TC-01 (Main Flow), TC-02 (Exception Flow EF-1)
-     * =========================================================================
+     * Xử lý đăng nhập tài khoản người dùng
      */
     public void login(String username, String password, java.awt.Component view) {
         try {
-            // Bước 4 (Main Flow): Hệ thống kiểm tra thông tin thông qua Service
             Account loggedInAccount = loginService.login(username, password);
-
             String role = loggedInAccount.getRole();
 
-            // Bước 5 & 6 (Main Flow): Chuyển hướng
             JOptionPane.showMessageDialog(view, "Đăng nhập thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             redirectByRole(role, view);
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Đăng nhập thất bại!\nChi tiết: " + e.getMessage(), "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(view, "Đăng nhập thất bại!\nChi tiết: " + e.getMessage(), "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -41,14 +39,34 @@ public class LoginController {
      * Phương thức hỗ trợ chuyển hướng giao diện dựa trên vai trò
      */
     private void redirectByRole(String role, java.awt.Component currentView) {
-        currentView.setVisible(false);
+        if (currentView instanceof JFrame frame) {
+            frame.dispose();
+        } else if (currentView != null) {
+            currentView.setVisible(false);
+        }
 
-        if ("QUAN_LI".equals(role)) {
-            System.out.println("Mở giao diện Quản lí...");
-        } else if ("THU_THU".equals(role)) {
-            System.out.println("Mở giao diện Thủ thư...");
-        } else if ("SINH_VIEN".equals(role)) {
-            System.out.println("Mở giao diện Sinh viên...");
+        if (SessionManager.ROLE_STUDENT.equalsIgnoreCase(role)) {
+            SwingUtilities.invokeLater(() -> {
+                SearchBookForm searchBookForm = new SearchBookForm();
+                searchBookForm.addWindowListener(new java.awt.event.WindowAdapter() {
+                    @Override
+                    public void windowClosing(java.awt.event.WindowEvent e) {
+                        SessionManager.getInstance().logout();
+                        new LoginForm().setVisible(true);
+                    }
+                });
+                searchBookForm.setVisible(true);
+            });
+        } else if (SessionManager.ROLE_LIBRARIAN.equalsIgnoreCase(role) || SessionManager.ROLE_MANAGER.equalsIgnoreCase(role)) {
+            SwingUtilities.invokeLater(() -> {
+                DashboardForm dashboardForm = new DashboardForm();
+                dashboardForm.setVisible(true);
+            });
+        } else {
+            JOptionPane.showMessageDialog(null, "Vai trò không hợp lệ: " + role, "Lỗi phân quyền", JOptionPane.ERROR_MESSAGE);
+            if (currentView != null) {
+                currentView.setVisible(true);
+            }
         }
     }
 }

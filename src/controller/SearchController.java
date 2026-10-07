@@ -15,10 +15,7 @@ public class SearchController {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-02 Tra cứu tài liệu
-     * Traceability: UI gửi từ khóa → SearchController → SearchService
-     * =========================================================================
+     * Tra cứu tài liệu theo từ khóa
      */
     public List<Book> searchBooks(String keyword)
             throws SQLException, IllegalArgumentException {

@@ -21,20 +21,7 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * =========================================================================
- * Tầng: Presentation Layer (ui/)
- * Use Case: UC-03 Tạo phiếu mượn sách «include» UC-04 Kiểm tra điều kiện mượn sách
- * Màn hình: 04 "Tạo phiếu mượn" (Bảng 10 SRS) - ánh xạ PhieuMuonForm (Bảng 13, Hình 8)
- * Bố cục: thống nhất với ReturnBookForm (Heuristic #4 - Consistency and Standards)
- *   - Khu vực 1: Nhận diện sinh viên (quét thẻ, hiển thị thông tin - UC-03 bước 1-3)
- *   - Khu vực 2: Banner cảnh báo ẩn/hiện (đỏ: không đủ điều kiện, vàng: sắp đạt giới hạn)
- *   - Khu vực 3: Danh sách chờ mượn (quét từng sách - UC-03 bước 4, REQ-020)
- *   - Thanh nút: Hoàn tất mượn (xanh) / Hủy (xám)
- * Kiến trúc: chỉ giao tiếp với BorrowController (Closed 4-Layer + MVC).
- *            Form chỉ kiểm tra ô nhập rỗng; mọi kiểm tra nghiệp vụ do BorrowService xử lý.
- * =========================================================================
- *
- * @author Người số 4 (UC-03, UC-04 Mượn sách)
+ * Giao diện Tạo phiếu mượn sách
  */
 public class BorrowForm extends JFrame {
 
@@ -57,7 +44,7 @@ public class BorrowForm extends JFrame {
 
     // Trạng thái dữ liệu trên giao diện
     private Student currentStudent = null;
-    private String eligibilityWarning = null;           // Cảnh báo "Sắp đạt giới hạn mượn" (UC-04 AF-2)
+    private String eligibilityWarning = null;           // Cảnh báo sắp đạt giới hạn mượn
     private final List<Book> pendingBooks = new ArrayList<>();
 
     // Header
@@ -95,12 +82,9 @@ public class BorrowForm extends JFrame {
         onLoad();
     }
 
-    // =========================================================================
-    // KHỞI TẠO GIAO DIỆN
-    // =========================================================================
-
+    // Khởi tạo giao diện
     private void initComponents() {
-        setTitle("Hệ thống Quản lý Thư viện - Tạo phiếu mượn (UC-03)");
+        setTitle("Hệ thống Quản lý Thư viện - Tạo phiếu mượn");
         setSize(960, 680);
         setMinimumSize(new Dimension(860, 600));
         setLocationRelativeTo(null);
@@ -150,7 +134,9 @@ public class BorrowForm extends JFrame {
         String librarianName = SessionManager.getInstance().isLoggedIn()
                 ? SessionManager.getInstance().getFullName()
                 : "Thủ thư";
-        lblLibrarianName = new JLabel(librarianName + " ▾");
+        lblLibrarianName = new JLabel(librarianName, createDownChevronIcon(9, 6, new Color(80, 80, 80)), SwingConstants.LEFT);
+        lblLibrarianName.setHorizontalTextPosition(SwingConstants.LEFT);
+        lblLibrarianName.setIconTextGap(6);
         lblLibrarianName.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblLibrarianName.setForeground(new Color(60, 60, 60));
 
@@ -159,8 +145,31 @@ public class BorrowForm extends JFrame {
         return panel;
     }
 
+    private static Icon createDownChevronIcon(int width, int height, Color color) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                int midX = x + width / 2;
+                int topY = y + 2;
+                int botY = y + height;
+                g2.drawLine(x, topY, midX, botY);
+                g2.drawLine(midX, botY, x + width, topY);
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() { return width; }
+            @Override
+            public int getIconHeight() { return height + 4; }
+        };
+    }
+
     /**
-     * Khu vực 1: Nhận diện sinh viên (UC-03 bước 1-3, REQ-016).
+     * Khu vực 1: Nhận diện sinh viên.
      */
     private JPanel createArea1StudentIdentification() {
         JPanel panel = new JPanel(new GridBagLayout());
@@ -186,7 +195,6 @@ public class BorrowForm extends JFrame {
         txtStudentId.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         txtStudentId.setPreferredSize(new Dimension(300, 34));
         txtStudentId.setToolTipText("Quét / nhập mã thẻ sinh viên rồi nhấn Enter");
-        // Máy quét mã vạch tự gửi phím Enter sau khi quét (REQ-016)
         txtStudentId.addActionListener(e -> onScanCardEnter());
         panel.add(txtStudentId, gbc);
 
@@ -198,7 +206,6 @@ public class BorrowForm extends JFrame {
         btnManualInput.setPreferredSize(new Dimension(160, 34));
         btnManualInput.setBackground(new Color(240, 242, 245));
         btnManualInput.setFocusPainted(false);
-        // UC-03 AF-1: máy quét lỗi -> Thủ thư gõ mã rồi bấm nút
         btnManualInput.addActionListener(e -> onScanCardEnter());
         panel.add(btnManualInput, gbc);
 
@@ -227,7 +234,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * Khu vực 2: Banner cảnh báo ẩn/hiện (UC-04 EF-1..EF-3, AF-2; UC-03 EF-2, EF-3).
+     * Khu vực 2: Banner cảnh báo ẩn/hiện.
      */
     private JPanel createArea2WarningBanner() {
         panelWarning = new JPanel(new FlowLayout(FlowLayout.LEFT, 12, 8));
@@ -244,7 +251,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * Khu vực 3: Danh sách chờ mượn (UC-03 bước 4, REQ-020).
+     * Khu vực 3: Danh sách chờ mượn.
      */
     private JPanel createArea3PendingList() {
         JPanel panel = new JPanel(new BorderLayout(0, 6));
@@ -307,7 +314,7 @@ public class BorrowForm extends JFrame {
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         tblPendingBooks.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 
-        // Nút "Xóa" trên từng dòng (Heuristic #3 - User Control and Freedom: quét nhầm thì gỡ ra)
+        // Nút "Xóa" trên từng dòng
         tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellRenderer(new DeleteButtonRenderer());
         tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellEditor(new DeleteButtonEditor());
 
@@ -346,24 +353,25 @@ public class BorrowForm extends JFrame {
         return panel;
     }
 
-    // =========================================================================
-    // XỬ LÝ SỰ KIỆN (ánh xạ PhieuMuonForm - Bảng 13 & Hình 8 SRS)
-    // =========================================================================
+    // Xử lý sự kiện
 
     /**
-     * Sự kiện onLoad: tự động focus vào ô quét thẻ sinh viên.
+     * Sự kiện onLoad: Kiểm tra quyền truy cập và focus vào ô quét thẻ sinh viên.
      */
     private void onLoad() {
+        SessionManager session = SessionManager.getInstance();
+        if (!session.isLibrarian() && !session.isManager()) {
+            JOptionPane.showMessageDialog(this,
+                    "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản Thủ thư hoặc Quản lý.",
+                    "Từ chối truy cập", JOptionPane.ERROR_MESSAGE);
+            SwingUtilities.invokeLater(this::dispose);
+            return;
+        }
         SwingUtilities.invokeLater(() -> txtStudentId.requestFocusInWindow());
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-04 Kiểm tra điều kiện mượn sách (UC-03 bước 1-3)
-     * Ánh xạ SRS: PhieuMuonForm.nhapThongTin(mssv, ...) - phần quét thẻ sinh viên
-     * Luồng: BorrowForm -> borrowController.handleCheckEligibility()
-     * Test Case tương ứng: TC-06, TC-07, TC-08
-     * =========================================================================
+     * Kiểm tra điều kiện mượn sách khi quét mã thẻ sinh viên.
      */
     private void onScanCardEnter() {
         String studentId = txtStudentId.getText().trim();
@@ -416,12 +424,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-03 Tạo phiếu mượn sách - bước 4 (quét từng đầu sách)
-     * Ánh xạ SRS: PhieuMuonForm.nhapThongTin(..., maDauSach)
-     * Luồng: BorrowForm -> borrowController.handleAddBook()
-     * Test Case tương ứng: TC-06, TC-07
-     * =========================================================================
+     * Thêm đầu sách vào danh sách chờ mượn khi quét mã sách.
      */
     private void onScanBookEnter() {
         if (currentStudent == null) {
@@ -467,7 +470,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * Gỡ một cuốn khỏi danh sách chờ mượn khi quét nhầm (Heuristic #3).
+     * Gỡ một cuốn khỏi danh sách chờ mượn.
      */
     private void onRemoveBook(int row) {
         if (row < 0 || row >= pendingBooks.size()) {
@@ -481,13 +484,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-03 Tạo phiếu mượn sách - bước 5-8 (nhấn "Hoàn tất mượn")
-     * Ánh xạ SRS: PhieuMuonForm.bamMuonSach() -> hienThiThongBaoThanhCong() / hienThiThongBaoLoi()
-     * Sequence Diagram: sd MuonSach (Hình 8 SRS) - taoPhieuMuon(mssv, maDauSach)
-     * Luồng: BorrowForm -> borrowController.handleBorrow()
-     * Test Case tương ứng: TC-06, TC-07, TC-08
-     * =========================================================================
+     * Xử lý xác nhận tạo phiếu mượn sách.
      */
     private void btnConfirmActionPerformed(ActionEvent event) {
         if (currentStudent == null || pendingBooks.isEmpty()) {
@@ -496,7 +493,7 @@ public class BorrowForm extends JFrame {
             return;
         }
 
-        // Heuristic #5 - Error Prevention: hỏi lại trước khi ghi vào CSDL
+        // Xác nhận trước khi ghi vào CSDL
         StringBuilder confirmMessage = new StringBuilder();
         confirmMessage.append("Tạo phiếu mượn cho sinh viên: ")
                 .append(currentStudent.getFullName())
@@ -547,12 +544,10 @@ public class BorrowForm extends JFrame {
         resetForm();
     }
 
-    // =========================================================================
-    // HIỂN THỊ KẾT QUẢ (màn hình 10 "Thông báo lỗi / Xác nhận" - Bảng 10 SRS)
-    // =========================================================================
+    // Hiển thị kết quả
 
     /**
-     * Ánh xạ SRS: PhieuMuonForm.hienThiThongBaoThanhCong()
+     * Hiển thị thông báo thành công.
      */
     private void showSuccessMessage(BorrowResult result) {
         String message = "TẠO PHIẾU MƯỢN THÀNH CÔNG!\n\n"
@@ -564,15 +559,13 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * Ánh xạ SRS: PhieuMuonForm.hienThiThongBaoLoi()
+     * Hiển thị thông báo lỗi.
      */
     private void showErrorMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Lỗi mượn sách", JOptionPane.ERROR_MESSAGE);
     }
 
-    // =========================================================================
-    // HÀM HỖ TRỢ GIAO DIỆN
-    // =========================================================================
+    // Hàm hỗ trợ giao diện
 
     private void showStudentInfo(Student student) {
         lblStudentNameValue.setText(student.getFullName() + " (" + student.getStudentId() + ")");
@@ -599,7 +592,7 @@ public class BorrowForm extends JFrame {
     }
 
     /**
-     * Banner vàng: đủ điều kiện nhưng sắp đạt giới hạn mượn (UC-04 AF-2).
+     * Banner vàng: đủ điều kiện nhưng sắp đạt giới hạn mượn.
      */
     private void showWarningBanner(String message) {
         panelWarning.setBackground(COLOR_WARNING_BG);
@@ -699,9 +692,7 @@ public class BorrowForm extends JFrame {
         return String.format(Locale.forLanguageTag("vi-VN"), "%,.0f đ", amount);
     }
 
-    // =========================================================================
-    // NÚT "XÓA" TRONG BẢNG DANH SÁCH CHỜ MƯỢN
-    // =========================================================================
+    // Nút "Xóa" trong bảng danh sách chờ mượn
 
     private class DeleteButtonRenderer extends JButton implements TableCellRenderer {
         DeleteButtonRenderer() {
@@ -751,14 +742,8 @@ public class BorrowForm extends JFrame {
         }
     }
 
-    // =========================================================================
-    // CHẠY THỬ ĐỘC LẬP
-    // =========================================================================
-
     /**
-     * Chạy thử giao diện độc lập. Giả lập đăng nhập Thủ thư TT0001 (có trong seed_data.sql)
-     * giống nút "Giả lập Đăng nhập Thủ thư" của MainApp, vì BorrowController yêu cầu
-     * người dùng hiện tại là Thủ thư.
+     * Chạy thử giao diện độc lập với tài khoản mẫu Thủ thư.
      */
     public static void main(String[] args) {
         try {

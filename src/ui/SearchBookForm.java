@@ -33,9 +33,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Khởi tạo giao diện
-     * =========================================================================
      */
     private void khoiTaoGiaoDien() {
 
@@ -49,10 +47,7 @@ public class SearchBookForm extends JFrame {
                 JFrame.DISPOSE_ON_CLOSE
         );
 
-        // =========================================================
-        // PANEL CHÍNH
-        // =========================================================
-
+        // Panel chính
         JPanel panelChinh =
                 new JPanel(new BorderLayout(10, 10));
 
@@ -65,10 +60,7 @@ public class SearchBookForm extends JFrame {
                 )
         );
 
-        // =========================================================
-        // TIÊU ĐỀ
-        // =========================================================
-
+        // Tiêu đề
         JLabel lblTieuDe =
                 new JLabel("TRA CỨU SÁCH");
 
@@ -89,18 +81,13 @@ public class SearchBookForm extends JFrame {
                 BorderLayout.NORTH
         );
 
-        // =========================================================
-        // PANEL NỘI DUNG
-        // =========================================================
-
+        // Panel nội dung
         JPanel panelNoiDung =
                 new JPanel(
                         new BorderLayout(10, 10)
                 );
 
-        // =========================================================
-        // PANEL TÌM KIẾM
-        // =========================================================
+        // Panel tìm kiếm
 
         JPanel panelTimKiem =
                 new JPanel(
@@ -165,10 +152,7 @@ public class SearchBookForm extends JFrame {
                 BorderLayout.NORTH
         );
 
-        // =========================================================
-        // BẢNG SÁCH
-        // =========================================================
-
+        // Bảng sách
         String[] tenCot = {
                 "Mã sách",
                 "Tên sách",
@@ -238,10 +222,7 @@ public class SearchBookForm extends JFrame {
                 BorderLayout.CENTER
         );
 
-        // =========================================================
-        // THÊM NỘI DUNG VÀO PANEL CHÍNH
-        // =========================================================
-
+        // Thêm nội dung vào panel chính
         panelChinh.add(
                 panelNoiDung,
                 BorderLayout.CENTER
@@ -251,9 +232,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Gán sự kiện cho giao diện
-     * =========================================================================
      */
     private void ganSuKien() {
 
@@ -293,9 +272,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Xử lý tìm kiếm sách
-     * =========================================================================
      */
     private void xuLyTimKiem() {
 
@@ -318,11 +295,6 @@ public class SearchBookForm extends JFrame {
         }
 
         try {
-
-            // =====================================================
-            // UI → Controller
-            // =====================================================
-
             List<Book> danhSachSach =
                     searchController.searchBooks(
                             tuKhoa
@@ -335,10 +307,7 @@ public class SearchBookForm extends JFrame {
             // Xóa dữ liệu cũ
             xoaDuLieuBang();
 
-            // =====================================================
             // Hiển thị kết quả
-            // =====================================================
-
             for (Book book : danhSachSach) {
 
                 tableModel.addRow(
@@ -351,10 +320,7 @@ public class SearchBookForm extends JFrame {
                 );
             }
 
-            // =====================================================
             // Không tìm thấy kết quả
-            // =====================================================
-
             if (danhSachSach.isEmpty()) {
 
                 JOptionPane.showMessageDialog(
@@ -390,9 +356,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Xử lý nút Xóa
-     * =========================================================================
      */
     private void xuLyXoa() {
 
@@ -406,9 +370,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Xóa dữ liệu trong bảng
-     * =========================================================================
      */
     private void xoaDuLieuBang() {
 
@@ -416,12 +378,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
-     * Xem chi tiết sách
-     * =========================================================================
-     *
-     * Người dùng double-click vào một dòng sách.
-     * Hệ thống lấy Book tương ứng và hiển thị mô tả.
+     * Xem chi tiết sách khi double-click
      */
     private void xuLyXemChiTiet() {
 
@@ -447,10 +404,7 @@ public class SearchBookForm extends JFrame {
                         dongDuocChon
                 );
 
-        // =========================================================
         // Lấy mô tả
-        // =========================================================
-
         String moTa =
                 book.getDescription();
 
@@ -461,10 +415,7 @@ public class SearchBookForm extends JFrame {
                     "Chưa có mô tả cho sách này.";
         }
 
-        // =========================================================
         // Tạo vùng hiển thị mô tả
-        // =========================================================
-
         JTextArea txtMoTa =
                 new JTextArea(moTa);
 
@@ -492,10 +443,7 @@ public class SearchBookForm extends JFrame {
                 )
         );
 
-        // =========================================================
         // Tạo panel chi tiết
-        // =========================================================
-
         JPanel panelChiTiet =
                 new JPanel(
                         new BorderLayout(
@@ -533,10 +481,7 @@ public class SearchBookForm extends JFrame {
                 BorderLayout.CENTER
         );
 
-        // =========================================================
         // Hiển thị cửa sổ chi tiết
-        // =========================================================
-
         JOptionPane.showMessageDialog(
                 this,
                 panelChiTiet,
@@ -546,9 +491,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Hiển thị một kết quả vào bảng
-     * =========================================================================
      */
     public void hienThiKetQua(
             String maSach,
@@ -558,19 +501,17 @@ public class SearchBookForm extends JFrame {
     ) {
 
         tableModel.addRow(
-                new Object[]{
-                        maSach,
-                        tenSach,
-                        tacGia,
-                        soLuong
-                }
+            new Object[]{
+                    maSach,
+                    tenSach,
+                    tacGia,
+                    soLuong
+            }
         );
     }
 
     /**
-     * =========================================================================
      * Xóa kết quả cũ
-     * =========================================================================
      */
     public void xoaKetQuaCu() {
 
@@ -580,9 +521,7 @@ public class SearchBookForm extends JFrame {
     }
 
     /**
-     * =========================================================================
      * Chạy thử giao diện
-     * =========================================================================
      */
     public static void main(String[] args) {
 

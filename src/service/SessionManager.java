@@ -3,24 +3,11 @@ package service;
 import java.util.Date;
 
 /**
- * =========================================================================
- * Module: Quản lý Phiên Đăng nhập & Hạ tầng Xác thực (Session Infrastructure)
- * Use Case liên quan: UC-01 Đăng nhập (Login) & Phân quyền người dùng
- * Sequence Diagram: sd DangNhap (Mục 5.1 SRS)
- * Traceability Message: SessionManager.getInstance().login(...)
- * Thiết kế Mẫu: In-Memory Singleton Pattern (Class Diagram SRS)
- * Ràng buộc: Lưu trữ thông tin tài khoản đang làm việc trong bộ nhớ RAM,
- *            cung cấp vai trò và mã định danh cho toàn bộ các Form và Service.
- * =========================================================================
- * 
- * @author Người số 5 (Hạ tầng chung & CSDL)
+ * Quản lý phiên làm việc của người dùng hiện tại
  */
 public class SessionManager {
 
-    // =========================================================================
-    // CÁC HẰNG SỐ VAI TRÒ HỆ THỐNG (SYSTEM ROLE CONSTANTS)
-    // Khớp với bảng tai_khoan cột quyen_truy_cap trong CSDL MySQL
-    // =========================================================================
+    // Các hằng số vai trò hệ thống
     public static final String ROLE_MANAGER   = "QUAN_LI";
     public static final String ROLE_LIBRARIAN = "THU_THU";
     public static final String ROLE_STUDENT   = "SINH_VIEN";
@@ -97,10 +84,6 @@ public class SessionManager {
         this.loginTime = null;
     }
 
-    // =========================================================================
-    // CÁC HÀM KIỂM TRA QUYỀN VÀ TRẠNG THÁI (AUTHORIZATION & STATE)
-    // =========================================================================
-
     /**
      * Kiểm tra xem người dùng đã đăng nhập hay chưa.
      */
@@ -141,10 +124,6 @@ public class SessionManager {
     public boolean isStudent() {
         return hasRole(ROLE_STUDENT);
     }
-
-    // =========================================================================
-    // GETTERS
-    // =========================================================================
 
     public synchronized String getUsername() {
         return username;

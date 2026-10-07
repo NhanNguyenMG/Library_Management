@@ -9,20 +9,7 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * =========================================================================
- * Kiến trúc: Closed 4-Layer Architecture - Tầng Database Access Infrastructure
- * Thiết kế Mẫu: Singleton Pattern (Mục 5.1 & Class Diagram SRS)
- * Ràng buộc kỹ thuật: JDBC thuần (PreparedStatement, Không dùng ORM/Hibernate)
- * Traceability Element: Bộ cung cấp kết nối CSDL duy nhất cho toàn bộ Repository
- * 
- * Nhiệm vụ:
- * 1. Khởi tạo và nạp MySQL JDBC Driver (mysql-connector-j-8.3.0.jar).
- * 2. Đọc cấu hình kết nối từ file db.properties (hỗ trợ nhiều cấp thư mục).
- * 3. Duy trì một kết nối duy nhất (Singleton), tự động kết nối lại nếu bị ngắt.
- * 4. Cung cấp hàm kiểm tra kết nối testConnection() trước khi khởi động giao diện.
- * =========================================================================
- * 
- * @author Người số 5 (Hạ tầng chung & CSDL)
+ * Quản lý kết nối cơ sở dữ liệu MySQL theo mẫu Singleton
  */
 public class DBConnection {
 
@@ -57,16 +44,18 @@ public class DBConnection {
         Properties props = new Properties();
         boolean loaded = false;
 
-        // Thử tìm trong classpath
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("db/db.properties")) {
-            if (is != null) {
-                props.load(is);
+        // Ưu tiên 1: File cấu hình cục bộ ở thư mục gốc (db.properties)
+        File rootFile = new File("db.properties");
+        if (rootFile.exists()) {
+            try (FileInputStream fis = new FileInputStream(rootFile)) {
+                props.load(fis);
                 loaded = true;
-            }
-        } catch (Exception ignored) {}
+            } catch (Exception ignored) {}
+        }
 
+        // Ưu tiên 2: Classpath resources
         if (!loaded) {
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream("db.properties")) {
+            try (InputStream is = getClass().getClassLoader().getResourceAsStream("db/db.properties")) {
                 if (is != null) {
                     props.load(is);
                     loaded = true;

@@ -1,22 +1,7 @@
 package model;
 
 /**
- * =========================================================================
- * DTO: Kết quả nghiệp vụ Mượn sách (không ánh xạ bảng CSDL)
- * Use Case: UC-03 Tạo phiếu mượn sách, UC-04 Kiểm tra điều kiện mượn sách
- * Sequence Diagram: sd MuonSach (Hình 8 SRS, mục 5.5.2) - message ketQua(success, thongBao)
- * Luồng dữ liệu: BorrowService -> BorrowController -> BorrowForm (giống ReturnResult của UC-05)
- *
- * Các trường dữ liệu:
- * - success : true nếu nghiệp vụ thành công / đủ điều kiện
- * - message : thông báo chính hiển thị cho Thủ thư (thành công hoặc lý do thất bại)
- * - warning : cảnh báo phụ khi vẫn thành công (ví dụ "Sắp đạt giới hạn mượn" - UC-04 AF-2)
- * - student : thông tin sinh viên sau khi kiểm tra điều kiện (UC-03 bước 3)
- * - book    : thông tin đầu sách vừa quét hợp lệ (UC-03 bước 4)
- * - slipId  : mã phiếu mượn vừa tạo (UC-03 bước 8)
- * =========================================================================
- *
- * @author Người số 4 (UC-03, UC-04 Mượn sách)
+ * Kết quả thực hiện mượn sách
  */
 public class BorrowResult {
 

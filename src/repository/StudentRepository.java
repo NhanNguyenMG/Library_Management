@@ -10,9 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * Tầng: Data Access Layer (repository)
- * Use Case: UC-04 Kiểm tra điều kiện mượn, UC-05 Xử lý trả sách, UC-07 Tính tiền phạt
- * Bảng CSDL: sinh_vien
+ * Repository thao tác với dữ liệu sinh viên
  */
 public class StudentRepository {
 
@@ -108,7 +106,7 @@ public class StudentRepository {
     }
 
     /**
-     * Cập nhật số sách đang mượn (tăng khi lập phiếu mượn - UC-03).
+     * Cập nhật số sách đang mượn (tăng khi lập phiếu mượn).
      *
      * @param studentId mã số sinh viên
      * @param borrowedCount số lượng sách mượn thêm
@@ -127,7 +125,7 @@ public class StudentRepository {
     }
 
     /**
-     * Kiểm tra tài khoản của sinh viên có bị khóa không (UC-04 bước 3 - thẻ hợp lệ).
+     * Kiểm tra tài khoản của sinh viên có bị khóa không.
      *
      * @param studentId mã số sinh viên
      * @return true nếu tài khoản có trạng thái LOCKED

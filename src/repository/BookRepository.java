@@ -13,11 +13,7 @@ import java.util.List;
 public class BookRepository {
 
     /**
-     * =========================================================================
-     * Use Case: UC-02 Tra cứu tài liệu
-     * Traceability: Truy vấn bảng dau_sach theo mã sách, tên sách hoặc tác giả
-     * Database Table: dau_sach
-     * =========================================================================
+     * Tìm kiếm sách theo từ khóa (mã sách, tên sách hoặc tác giả)
      */
     public List<Book> searchBooks(String keyword) throws SQLException {
 
@@ -66,52 +62,52 @@ public class BookRepository {
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-03 Tạo phiếu mượn sách
-     * Traceability: Tìm chính xác một đầu sách theo mã (dùng khi kiểm tra sách còn hàng)
-     * Database Table: dau_sach
-     * =========================================================================
+     * Tăng số lượng tồn kho của đầu sách
+     *
+     * @param bookId mã đầu sách
+     * @param quantity số lượng sách tăng thêm khi trả
+     * @param conn kết nối Transaction đang mở
+     * @return true nếu cập nhật thành công
+     * @throws SQLException nếu có lỗi cập nhật
+     */
+    public boolean increaseStock(String bookId, int quantity, Connection conn) throws SQLException {
+        String sql = "UPDATE dau_sach SET so_luong_con = so_luong_con + ? WHERE ma_dau_sach = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, quantity);
+            ps.setString(2, bookId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
+    /**
+     * Tìm thông tin đầu sách theo mã đầu sách.
+     *
+     * @param bookId mã đầu sách
+     * @return Book nếu tìm thấy, null nếu không tồn tại
+     * @throws SQLException nếu lỗi truy vấn
      */
     public Book findById(String bookId) throws SQLException {
-
-        String sql = """
-                SELECT ma_dau_sach, tac_sach, tac_gia, so_luong_con, mo_ta
-                FROM dau_sach
-                WHERE ma_dau_sach = ?
-                """;
-
-        Connection connection =
-                DBConnection.getInstance().getConnection();
-
-        try (PreparedStatement preparedStatement =
-                     connection.prepareStatement(sql)) {
-
-            preparedStatement.setString(1, bookId.trim());
-
-            try (ResultSet resultSet =
-                         preparedStatement.executeQuery()) {
-
-                if (resultSet.next()) {
+        String sql = "SELECT ma_dau_sach, tac_sach, tac_gia, so_luong_con, mo_ta FROM dau_sach WHERE ma_dau_sach = ?";
+        Connection conn = DBConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, bookId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
                     return new Book(
-                            resultSet.getString("ma_dau_sach"),
-                            resultSet.getString("tac_sach"),
-                            resultSet.getString("tac_gia"),
-                            resultSet.getInt("so_luong_con"),
-                            resultSet.getString("mo_ta")
+                            rs.getString("ma_dau_sach"),
+                            rs.getString("tac_sach"),
+                            rs.getString("tac_gia"),
+                            rs.getInt("so_luong_con"),
+                            rs.getString("mo_ta")
                     );
                 }
             }
         }
-
         return null;
     }
 
     /**
-     * =========================================================================
-     * Use Case: UC-03 Tạo phiếu mượn sách
-     * Traceability: Trừ tồn kho đầu sách khi lập phiếu mượn (chạy trong Transaction của BorrowService)
-     * Database Table: dau_sach (so_luong_con)
-     * =========================================================================
+     * Giảm số lượng tồn kho đầu sách khi lập phiếu mượn
      */
     public void decreaseStock(String bookId, int quantity, Connection connection) throws SQLException {
 

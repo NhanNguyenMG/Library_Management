@@ -8,22 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * =========================================================================
- * Tầng: Data Access Layer (repository/)
- * Use Case: UC-03 Tạo phiếu mượn sách, UC-04 Kiểm tra điều kiện mượn
- * Bảng CSDL: phieu_muon (ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te)
- *
- * Các chức năng chính:
- * Sinh mã phiếu tự động (PMxxxx)
- * Lưu phiếu mượn mới (save)
- * Tìm phiếu theo mã (findById)
- * Đếm số phiếu quá hạn chưa trả (countOverdueSlipsByStudentId)
- * =========================================================================
- *
- * @author Người số 4 (UC-03, UC-04 Mượn sách)
- */
 public class BorrowSlipRepository {
 
     private static final String SLIP_ID_PREFIX = "PM";
@@ -31,8 +18,6 @@ public class BorrowSlipRepository {
 
     private static final String SELECT_SLIP_COLUMNS =
             "SELECT ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te FROM phieu_muon ";
-
-    // UC-03: TẠO PHIẾU MƯỢN
 
     /**
      * 1. Sinh mã phiếu mượn tiếp theo theo định dạng PMxxxx (ví dụ: PM0003 -> PM0004).
@@ -97,8 +82,6 @@ public class BorrowSlipRepository {
         }
     }
 
-    // UC-04: KIỂM TRA ĐIỀU KIỆN MƯỢN
-
     /**
      * 4. Đếm số phiếu mượn đã quá hạn mà sinh viên chưa trả.
      * Thời điểm so sánh được truyền vào (thay vì dùng NOW() trong SQL)
@@ -121,12 +104,56 @@ public class BorrowSlipRepository {
         }
     }
 
-    // =========================================================================
-    // UC-05: TRẢ SÁCH — Người số 1 bổ sung theo PROJECT_PLAN.md (Giai đoạn 2):
-    //   - findActiveSlipByStudentId(String studentId)
-    //   - updateReturnDate(String slipId, Timestamp returnDate, Connection conn)
-    // Có thể dùng lại hàm mapRowToBorrowSlip() bên dưới.
-    // =========================================================================
+    /**
+     * Lấy danh sách các phiếu mượn chưa trả của một sinh viên (ngay_tra_thuc_te IS NULL).
+     *
+     * @param studentId mã số sinh viên
+     * @return danh sách BorrowSlip chưa trả, sắp xếp theo ngày mượn giảm dần
+     */
+    public List<BorrowSlip> findActiveSlipsByStudentId(String studentId) throws SQLException {
+        String sql = SELECT_SLIP_COLUMNS + "WHERE mssv = ? AND ngay_tra_thuc_te IS NULL ORDER BY ngay_muon DESC";
+        List<BorrowSlip> activeSlips = new ArrayList<>();
+        Connection conn = DBConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, studentId.trim());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    activeSlips.add(mapRowToBorrowSlip(rs));
+                }
+            }
+        }
+        return activeSlips;
+    }
+
+    /**
+     * Lấy phiếu mượn chưa trả gần nhất của một sinh viên.
+     *
+     * @param studentId mã số sinh viên
+     * @return BorrowSlip chưa trả gần nhất, hoặc null nếu không có
+     */
+    public BorrowSlip findActiveSlipByStudentId(String studentId) throws SQLException {
+        List<BorrowSlip> activeSlips = findActiveSlipsByStudentId(studentId);
+        return activeSlips.isEmpty() ? null : activeSlips.get(0);
+    }
+
+    /**
+     * Cập nhật ngày trả thực tế của phiếu mượn trong Transaction.
+     *
+     * @param slipId mã phiếu mượn
+     * @param returnDate thời điểm trả thực tế
+     * @param conn kết nối Transaction đang mở
+     * @return true nếu cập nhật thành công 1 dòng
+     * @throws SQLException nếu có lỗi cập nhật
+     */
+    public boolean updateReturnDate(String slipId, Timestamp returnDate, Connection conn) throws SQLException {
+        String sql = "UPDATE phieu_muon SET ngay_tra_thuc_te = ? WHERE ma_phieu = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setTimestamp(1, returnDate);
+            ps.setString(2, slipId);
+            return ps.executeUpdate() == 1;
+        }
+    }
+
 
     /**
      * Ánh xạ một dòng ResultSet của bảng phieu_muon sang đối tượng BorrowSlip.
