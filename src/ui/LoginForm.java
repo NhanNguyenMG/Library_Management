@@ -74,9 +74,9 @@ public class LoginForm extends JFrame {
         gbc.fill = GridBagConstraints.NONE;
         gbc.insets = new Insets(20, 10, 5, 10);
 
-        btnLogin = new JButton("Đăng nhập");
+        btnLogin = createStyledButton("Đăng nhập", new Color(37, 99, 235), Color.WHITE);
         btnLogin.setFont(labelFont);
-        btnLogin.setPreferredSize(new Dimension(140, 35));
+        btnLogin.setPreferredSize(new Dimension(140, 36));
         panel.add(btnLogin, gbc);
 
         // 4. Panel tài khoản kiểm thử nhanh bên dưới
@@ -95,12 +95,12 @@ public class LoginForm extends JFrame {
         btnLogin.addActionListener(this::btnConfirmActionPerformed);
         txtPassword.addActionListener(this::btnConfirmActionPerformed);
         txtUsername.addActionListener(e -> txtPassword.requestFocusInWindow());
-        setSize(480, 440);
+        setSize(480, 485);
         setLocationRelativeTo(null);
     }
 
     /**
-     * Tạo bảng danh sách 3 tài khoản kiểm thử theo yêu cầu
+     * Tạo bảng danh sách 4 tài khoản kiểm thử theo yêu cầu
      */
     private JPanel createTestAccountsPanel() {
         JPanel container = new JPanel();
@@ -118,12 +118,14 @@ public class LoginForm extends JFrame {
         container.add(lblTitle);
         container.add(Box.createVerticalStrut(8));
 
-        // 3 tài khoản mẫu
+        // Tài khoản mẫu
         container.add(createAccountRow("Quản lý:", "admin", "admin123", new Color(124, 58, 237)));
         container.add(Box.createVerticalStrut(5));
         container.add(createAccountRow("Thủ thư:", "thuthu01", "thuthu123", new Color(2, 132, 199)));
         container.add(Box.createVerticalStrut(5));
         container.add(createAccountRow("Sinh viên:", "sv001", "123456", new Color(16, 185, 129)));
+        container.add(Box.createVerticalStrut(5));
+        container.add(createAccountRow("SV có nợ:", "sv003", "123456", new Color(234, 88, 12)));
 
         return container;
     }
@@ -196,7 +198,25 @@ public class LoginForm extends JFrame {
         loginController.login(username, password, this);
     }
 
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(fg.equals(Color.WHITE) ? bg.darker() : new Color(203, 213, 225), 1),
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)
+        ));
+        return btn;
+    }
+
     public static void main(String[] args) {
+        // Kích hoạt khử răng cưa chữ (Anti-Aliasing) trên toàn hệ thống Swing
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         // Kích hoạt giao diện đồ họa giống với hệ điều hành đang dùng (Windows Look & Feel)
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

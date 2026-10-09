@@ -201,11 +201,9 @@ public class BorrowForm extends JFrame {
         gbc.gridx = 3;
         gbc.weightx = 0.0;
         gbc.gridwidth = 1;
-        btnManualInput = new JButton("Nhập mã thủ công");
+        btnManualInput = createStyledButton("Nhập mã thủ công", new Color(241, 245, 249), new Color(30, 41, 59));
         btnManualInput.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btnManualInput.setPreferredSize(new Dimension(160, 34));
-        btnManualInput.setBackground(new Color(240, 242, 245));
-        btnManualInput.setFocusPainted(false);
         btnManualInput.addActionListener(e -> onScanCardEnter());
         panel.add(btnManualInput, gbc);
 
@@ -271,20 +269,28 @@ public class BorrowForm extends JFrame {
         txtBookId.setToolTipText("Quét / nhập mã sách rồi nhấn Enter");
         txtBookId.addActionListener(e -> onScanBookEnter());
 
-        btnAddBook = new JButton("Thêm sách");
+        btnAddBook = createStyledButton("Thêm sách", new Color(241, 245, 249), new Color(30, 41, 59));
         btnAddBook.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btnAddBook.setPreferredSize(new Dimension(120, 34));
-        btnAddBook.setBackground(new Color(240, 242, 245));
-        btnAddBook.setFocusPainted(false);
         btnAddBook.addActionListener(e -> onScanBookEnter());
 
         lblPendingCount = new JLabel("Số sách chờ mượn: 0");
         lblPendingCount.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblPendingCount.setForeground(new Color(90, 95, 100));
 
+        JButton btnTraCuuSach = createStyledButton("Tra cứu sách", new Color(241, 245, 249), new Color(30, 41, 59));
+        btnTraCuuSach.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnTraCuuSach.setPreferredSize(new Dimension(130, 34));
+        btnTraCuuSach.setToolTipText("Mở bảng tra cứu để xem toàn bộ danh mục sách và mã sách");
+        btnTraCuuSach.addActionListener(e -> {
+            SearchBookForm searchForm = new SearchBookForm();
+            searchForm.setVisible(true);
+        });
+
         scanPanel.add(lblBookId);
         scanPanel.add(txtBookId);
         scanPanel.add(btnAddBook);
+        scanPanel.add(btnTraCuuSach);
         scanPanel.add(Box.createHorizontalStrut(20));
         scanPanel.add(lblPendingCount);
 
@@ -333,19 +339,15 @@ public class BorrowForm extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 14, 8));
         panel.setOpaque(false);
 
-        btnConfirmBorrow = new JButton("Hoàn tất mượn");
+        btnConfirmBorrow = createStyledButton("Hoàn tất mượn", new Color(226, 232, 240), new Color(148, 163, 184));
         btnConfirmBorrow.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnConfirmBorrow.setPreferredSize(new Dimension(170, 40));
-        btnConfirmBorrow.setFocusPainted(false);
-        btnConfirmBorrow.setContentAreaFilled(false);
-        btnConfirmBorrow.setOpaque(true);
+        btnConfirmBorrow.setEnabled(false);
         btnConfirmBorrow.addActionListener(this::btnConfirmActionPerformed);
 
-        btnCancel = new JButton("Hủy");
+        btnCancel = createStyledButton("Hủy", new Color(241, 245, 249), new Color(30, 41, 59));
         btnCancel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btnCancel.setPreferredSize(new Dimension(100, 40));
-        btnCancel.setBackground(COLOR_CANCEL);
-        btnCancel.setFocusPainted(false);
         btnCancel.addActionListener(this::btnCancelActionPerformed);
 
         panel.add(btnConfirmBorrow);
@@ -626,14 +628,28 @@ public class BorrowForm extends JFrame {
 
         btnConfirmBorrow.setEnabled(hasStudent && hasBooks);
         if (hasStudent && hasBooks) {
-            btnConfirmBorrow.setBackground(COLOR_CONFIRM_ENABLED);
+            btnConfirmBorrow.setBackground(new Color(39, 174, 96));
             btnConfirmBorrow.setForeground(Color.WHITE);
         } else {
-            btnConfirmBorrow.setBackground(COLOR_CONFIRM_DISABLED);
-            btnConfirmBorrow.setForeground(new Color(20, 60, 20));
+            btnConfirmBorrow.setBackground(new Color(226, 232, 240));
+            btnConfirmBorrow.setForeground(new Color(148, 163, 184));
         }
 
         lblPendingCount.setText("Số sách chờ mượn: " + pendingBooks.size());
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(fg.equals(Color.WHITE) ? bg.darker() : new Color(203, 213, 225), 1),
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)
+        ));
+        return btn;
     }
 
     private List<String> getPendingBookIds() {
@@ -698,8 +714,9 @@ public class BorrowForm extends JFrame {
         DeleteButtonRenderer() {
             setOpaque(true);
             setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            setBackground(new Color(250, 235, 235));
+            setBackground(new Color(254, 242, 242));
             setForeground(COLOR_ERROR_TEXT);
+            setBorder(new LineBorder(new Color(248, 113, 113), 1));
         }
 
         @Override
@@ -719,8 +736,9 @@ public class BorrowForm extends JFrame {
             button = new JButton(DELETE_BUTTON_TEXT);
             button.setOpaque(true);
             button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            button.setBackground(new Color(250, 235, 235));
+            button.setBackground(new Color(254, 242, 242));
             button.setForeground(COLOR_ERROR_TEXT);
+            button.setBorder(new LineBorder(new Color(248, 113, 113), 1));
             button.addActionListener(e -> {
                 int rowToRemove = editingRow;
                 fireEditingStopped();
@@ -746,6 +764,10 @@ public class BorrowForm extends JFrame {
      * Chạy thử giao diện độc lập với tài khoản mẫu Thủ thư.
      */
     public static void main(String[] args) {
+        // Kích hoạt khử răng cưa chữ (Anti-Aliasing) trên toàn hệ thống Swing
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}

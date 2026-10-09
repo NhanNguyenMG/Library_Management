@@ -22,4 +22,11 @@ public class SearchController {
 
         return searchService.searchBooks(keyword);
     }
+
+    /**
+     * Lấy toàn bộ danh sách sách có trong thư viện
+     */
+    public List<Book> getAllBooks() throws SQLException {
+        return searchService.getAllBooks();
+    }
 }

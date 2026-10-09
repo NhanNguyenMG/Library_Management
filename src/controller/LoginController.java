@@ -48,16 +48,10 @@ public class LoginController {
         if (SessionManager.ROLE_STUDENT.equalsIgnoreCase(role)) {
             SwingUtilities.invokeLater(() -> {
                 SearchBookForm searchBookForm = new SearchBookForm();
-                searchBookForm.addWindowListener(new java.awt.event.WindowAdapter() {
-                    @Override
-                    public void windowClosing(java.awt.event.WindowEvent e) {
-                        SessionManager.getInstance().logout();
-                        new LoginForm().setVisible(true);
-                    }
-                });
                 searchBookForm.setVisible(true);
             });
-        } else if (SessionManager.ROLE_LIBRARIAN.equalsIgnoreCase(role) || SessionManager.ROLE_MANAGER.equalsIgnoreCase(role)) {
+        } else if (SessionManager.ROLE_LIBRARIAN.equalsIgnoreCase(role)
+                || SessionManager.ROLE_MANAGER.equalsIgnoreCase(role)) {
             SwingUtilities.invokeLater(() -> {
                 DashboardForm dashboardForm = new DashboardForm();
                 dashboardForm.setVisible(true);

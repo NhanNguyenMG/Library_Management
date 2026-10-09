@@ -49,12 +49,37 @@ public class ReturnController {
     }
 
     /**
-     * Xác nhận trả sách
+     * Tính tổng số tiền phạt phát sinh cho danh sách các cuốn sách được quét.
+     */
+    public double tinhTongTienPhat(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
+        return returnService.calculateTotalFineForItems(items, student, actualReturnDate);
+    }
+
+    /**
+     * Tính số ngày trễ lớn nhất trong danh sách các cuốn sách được quét.
+     */
+    public long tinhSoNgayTreLonNhat(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
+        return returnService.calculateMaxLateDays(items, actualReturnDate);
+    }
+
+    /**
+     * Xác nhận trả sách (mặc định chưa thu tiền mặt ngay).
      */
     public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
                                        String slipId,
                                        Student student,
                                        String librarianId) {
-        return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId);
+        return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
+    }
+
+    /**
+     * Xác nhận trả sách với tuỳ chọn thu tiền mặt ngay hoặc ghi nợ
+     */
+    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                       String slipId,
+                                       Student student,
+                                       String librarianId,
+                                       boolean isPaidNow) {
+        return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, isPaidNow);
     }
 }

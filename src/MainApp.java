@@ -10,7 +10,6 @@ public class MainApp {
     public static final String APP_VERSION = "Phiên bản v1.0.0 (2026)";
 
     public static void main(String[] args) {
-        // Thiết lập thuộc tính làm mịn font chữ trên màn hình độ phân giải cao
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
 

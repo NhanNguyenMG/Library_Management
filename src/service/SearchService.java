@@ -15,21 +15,21 @@ public class SearchService {
     }
 
     /**
-     * Tra cứu danh sách tài liệu theo từ khóa
+     * Lấy toàn bộ danh sách tài liệu có trong thư viện.
      */
-    public List<Book> searchBooks(String keyword)
-            throws SQLException {
+    public List<Book> getAllBooks() throws SQLException {
+        return bookRepository.getAllBooks();
+    }
 
-        if (keyword == null
-                || keyword.trim().isEmpty()) {
-
-            throw new IllegalArgumentException(
-                    "Từ khóa tìm kiếm không được để trống."
-            );
+    /**
+     * Tra cứu danh sách tài liệu theo từ khóa.
+     * Nếu từ khóa rỗng hoặc null, hệ thống tự động trả về toàn bộ sách trong thư viện.
+     */
+    public List<Book> searchBooks(String keyword) throws SQLException {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return getAllBooks();
         }
 
-        return bookRepository.searchBooks(
-                keyword.trim()
-        );
+        return bookRepository.searchBooks(keyword.trim());
     }
 }

@@ -18,7 +18,10 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 
@@ -86,7 +89,7 @@ public class ReturnService {
         List<BorrowingItemDTO> items = new ArrayList<>();
 
         for (BorrowSlip slip : activeSlips) {
-            List<BorrowDetail> details = borrowDetailRepo.findBySlipId(slip.getSlipId());
+            List<BorrowDetail> details = borrowDetailRepo.findActiveBySlipId(slip.getSlipId());
             for (BorrowDetail detail : details) {
                 Book book = bookRepo.findById(detail.getBookId());
                 String bookTitle = (book != null) ? book.getTitle() : ("Sách " + detail.getBookId());
@@ -144,23 +147,85 @@ public class ReturnService {
     }
 
     /**
-     * Xác nhận trả sách với giao dịch Database Transaction.
-     * Thực hiện:
-     * 1. Cập nhật ngày trả thực tế cho phiếu mượn.
-     * 2. Tăng số lượng tồn kho đầu sách được trả.
-     * 3. Tạo bản ghi thanh toán phạt và cộng nợ sinh viên nếu có trễ hạn/hỏng.
-     * 4. Giảm số lượng sách đang mượn của sinh viên.
+     * Tính toán tổng số tiền phạt dựa trên từng cuốn sách được quét.
+     * Mỗi cuốn tính trễ riêng theo hạn trả của cuốn đó và nhân với số lượng sách (SRS 2.3.7 bước 4):
+     * Tiền phạt = (tổng số ngày trễ * FINE_PER_DAY * số lượng) - (chiết khấu sinh viên ưu tiên nếu có) + phí hư hỏng/mất sách.
      *
-     * @param scannedItems danh sách các cuốn sách đã quét
-     * @param slipId mã phiếu mượn
+     * @param items danh sách các cuốn sách được quét
      * @param student đối tượng sinh viên
-     * @param librarianId mã thủ thư đang thực hiện
-     * @return ReturnResult kết quả trả sách
+     * @param actualReturnDate thời điểm trả thực tế
+     * @return tổng số tiền phạt phát sinh
+     */
+    public double calculateTotalFineForItems(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
+        if (items == null || items.isEmpty()) {
+            return 0.0;
+        }
+        double totalOriginalLateFine = 0.0;
+        double totalCompFee = 0.0;
+        for (BorrowingItemDTO item : items) {
+            if (item.isScanned()) {
+                long days = calculateLateDays(item.getDueDate(), actualReturnDate);
+                totalOriginalLateFine += Math.max(0, days) * FINE_PER_DAY * Math.max(1, item.getQuantity());
+                totalCompFee += Math.max(0, item.getCompensationFee());
+            }
+        }
+        double actualLateFine = totalOriginalLateFine;
+        if (student instanceof PriorityStudent ps) {
+            actualLateFine = ps.calculateDiscountedFine(totalOriginalLateFine);
+        }
+        return actualLateFine + totalCompFee;
+    }
+
+    /**
+     * Lấy số ngày trễ lớn nhất trong các cuốn sách được quét.
+     *
+     * @param items danh sách các cuốn sách được quét
+     * @param actualReturnDate thời điểm trả thực tế
+     * @return số ngày trễ lớn nhất (>= 0)
+     */
+    public long calculateMaxLateDays(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
+        if (items == null || items.isEmpty()) {
+            return 0;
+        }
+        long maxDays = 0;
+        for (BorrowingItemDTO item : items) {
+            if (item.isScanned()) {
+                long days = calculateLateDays(item.getDueDate(), actualReturnDate);
+                if (days > maxDays) {
+                    maxDays = days;
+                }
+            }
+        }
+        return maxDays;
+    }
+
+    /**
+     * Xác nhận trả sách với giao dịch Database Transaction (mặc định chưa thu tiền mặt ngay).
      */
     public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
                                        String slipId,
                                        Student student,
                                        String librarianId) {
+        return xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
+    }
+
+    /**
+     * Xác nhận trả sách với giao dịch Database Transaction.
+     * Hỗ trợ trả sách từng phần (Partial Return), quét sách từ nhiều phiếu khác nhau,
+     * tính phạt riêng theo từng cuốn sách và tuỳ chọn thu tiền mặt ngay hoặc ghi nợ (Điểm chạm 2).
+     *
+     * @param scannedItems danh sách các cuốn sách đã quét
+     * @param slipId mã phiếu mượn mặc định (nếu item không chỉ định)
+     * @param student đối tượng sinh viên
+     * @param librarianId mã thủ thư đang thực hiện
+     * @param isPaidNow true nếu đã thu tiền mặt tại quầy (Điểm chạm 2), false nếu ghi nợ để trả sau
+     * @return ReturnResult kết quả trả sách
+     */
+    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                       String slipId,
+                                       Student student,
+                                       String librarianId,
+                                       boolean isPaidNow) {
 
         if (scannedItems == null || scannedItems.isEmpty()) {
             return new ReturnResult(false, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận trả.", slipId, 0, 0);
@@ -181,51 +246,80 @@ public class ReturnService {
 
             Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            // 1. Cập nhật ngày trả thực tế của phiếu mượn
-            boolean slipUpdated = borrowSlipRepo.updateReturnDate(slipId, now, conn);
-            if (!slipUpdated) {
-                throw new SQLException("Không thể cập nhật ngày trả cho phiếu mượn: " + slipId);
-            }
+            // Gom nhóm sách theo từng mã phiếu mượn (để hỗ trợ trường hợp quét sách thuộc các phiếu khác nhau)
+            Map<String, List<BorrowingItemDTO>> itemsBySlip = validScanned.stream()
+                    .collect(Collectors.groupingBy(
+                            item -> (item.getSlipId() != null && !item.getSlipId().isEmpty()) ? item.getSlipId() : slipId,
+                            LinkedHashMap::new,
+                            Collectors.toList()
+                    ));
 
-            // 2. Cập nhật tồn kho cho các đầu sách được trả
             int totalReturnedCount = 0;
-            for (BorrowingItemDTO item : validScanned) {
-                // Nếu sách bị mất thì không tăng lại vào kho, nếu tốt hoặc hư hỏng thì trả về kho
-                if (!"Mất sách".equalsIgnoreCase(item.getPhysicalCondition())) {
-                    boolean stockUpdated = bookRepo.increaseStock(item.getBookId(), item.getQuantity(), conn);
-                    if (!stockUpdated) {
-                        throw new SQLException("Lỗi cập nhật tồn kho cho đầu sách: " + item.getBookId());
+
+            for (Map.Entry<String, List<BorrowingItemDTO>> entry : itemsBySlip.entrySet()) {
+                String currentSlipId = entry.getKey();
+                List<BorrowingItemDTO> slipItems = entry.getValue();
+
+                for (BorrowingItemDTO item : slipItems) {
+                    // 1. Đánh dấu sách đã trả trong chi tiết phiếu mượn (ghi_chu = 'DA_TRA')
+                    borrowDetailRepo.markAsReturned(currentSlipId, item.getBookId(), conn);
+
+                    // 2. Cập nhật tồn kho cho các đầu sách được trả (nếu không mất)
+                    if (!"Mất sách".equalsIgnoreCase(item.getPhysicalCondition())) {
+                        boolean stockUpdated = bookRepo.increaseStock(item.getBookId(), item.getQuantity(), conn);
+                        if (!stockUpdated) {
+                            throw new SQLException("Lỗi cập nhật tồn kho cho đầu sách: " + item.getBookId());
+                        }
+                    }
+                    totalReturnedCount += item.getQuantity();
+                }
+
+                // 3. Kiểm tra xem phiếu mượn còn cuốn sách nào chưa trả không
+                int remainingUnreturned = borrowDetailRepo.countUnreturnedDetails(currentSlipId, conn);
+                if (remainingUnreturned == 0) {
+                    // Nếu đã trả hết toàn bộ sách trong phiếu -> Cập nhật ngày trả thực tế để đóng phiếu
+                    boolean slipUpdated = borrowSlipRepo.updateReturnDate(currentSlipId, now, conn);
+                    if (!slipUpdated) {
+                        throw new SQLException("Không thể cập nhật ngày trả cho phiếu mượn: " + currentSlipId);
                     }
                 }
-                totalReturnedCount += item.getQuantity();
+
+                // 4. Tính tiền phạt phát sinh cho riêng phiếu này và ghi nhận vào bảng thanh_toan
+                double slipFine = calculateTotalFineForItems(slipItems, student, now);
+                if (slipFine > 0) {
+                    String method = "TIEN_MAT";
+                    String status = isPaidNow ? "DA_THANH_TOAN" : "CHUA_THANH_TOAN";
+                    paymentRepo.saveOrUpdateFineRecord(currentSlipId, slipFine, method, status, conn);
+                }
             }
 
-            // 3. Tính toán trễ hạn & tiền phạt
-            Timestamp dueDate = validScanned.get(0).getDueDate();
-            long lateDays = calculateLateDays(dueDate, now);
-            double totalCompFee = validScanned.stream()
-                    .mapToDouble(BorrowingItemDTO::getCompensationFee)
-                    .sum();
-            double totalFine = calculateFine(lateDays, student, totalCompFee);
+            // 5. Tính toán tổng tiền phạt và số ngày trễ tối đa của toàn bộ lượt quét
+            double totalFine = calculateTotalFineForItems(validScanned, student, now);
+            long maxLateDays = calculateMaxLateDays(validScanned, now);
 
-            // 4. Nếu phát sinh tiền phạt -> Lưu bảng thanh_toan và cộng nợ sinh viên
-            if (totalFine > 0) {
-                paymentRepo.createFineRecord(slipId, totalFine, "TIEN_MAT", "CHUA_THANH_TOAN", conn);
+            // 6. Điểm chạm 2: Nếu chưa thu tiền mặt ngay (Ghi nợ) -> Cộng nợ vào sinh_vien.so_tien_no
+            // Nếu đã thu tiền mặt ngay -> KHÔNG cộng nợ vào sinh_vien
+            if (totalFine > 0 && !isPaidNow) {
                 studentRepo.updateDebtAmount(student.getStudentId(), totalFine, conn);
             }
 
-            // 5. Cập nhật giảm số sách đang mượn của sinh viên
+            // 7. Cập nhật giảm số sách đang mượn của sinh viên
             studentRepo.decreaseBorrowedCount(student.getStudentId(), totalReturnedCount, conn);
 
             // Commit thành công toàn bộ giao dịch
             conn.commit();
 
+            String slipsSummary = String.join(", ", itemsBySlip.keySet());
             String successMsg = "Trả sách thành công!";
             if (totalFine > 0) {
-                successMsg += String.format(" Phát sinh phạt trễ/hỏng: %,.0f VNĐ (Trễ %d ngày).", totalFine, lateDays);
+                if (isPaidNow) {
+                    successMsg += String.format(" Đã thu tiền mặt: %,.0f VNĐ (Trễ tối đa %d ngày).", totalFine, maxLateDays);
+                } else {
+                    successMsg += String.format(" Đã ghi nợ vào tài khoản sinh viên: %,.0f VNĐ (Trễ tối đa %d ngày).", totalFine, maxLateDays);
+                }
             }
 
-            return new ReturnResult(true, successMsg, slipId, totalFine, lateDays);
+            return new ReturnResult(true, successMsg, slipsSummary, totalFine, maxLateDays);
 
         } catch (SQLException e) {
             // Rollback giao dịch nếu gặp bất kỳ lỗi CSDL nào

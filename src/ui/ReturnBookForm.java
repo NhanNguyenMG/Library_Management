@@ -205,11 +205,9 @@ public class ReturnBookForm extends JFrame {
         gbc.gridx = 2;
         gbc.gridy = 0;
         gbc.weightx = 0.0;
-        btnManualInput = new JButton("Nhập mã thủ công");
+        btnManualInput = createStyledButton("Nhập mã thủ công", new Color(241, 245, 249), new Color(30, 41, 59));
         btnManualInput.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btnManualInput.setPreferredSize(new Dimension(160, 34));
-        btnManualInput.setBackground(new Color(240, 242, 245));
-        btnManualInput.setFocusPainted(false);
         btnManualInput.addActionListener(e -> xuLyTraCuuSinhVien());
         panel.add(btnManualInput, gbc);
 
@@ -361,21 +359,16 @@ public class ReturnBookForm extends JFrame {
         panel.setOpaque(false);
 
         // Nút: Xác nhận trả (Màu xanh, mặc định disabled)
-        btnConfirmReturn = new JButton("Xác nhận trả");
+        btnConfirmReturn = createStyledButton("Xác nhận trả", new Color(226, 232, 240), new Color(148, 163, 184));
         btnConfirmReturn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnConfirmReturn.setPreferredSize(new Dimension(150, 40));
-        btnConfirmReturn.setBackground(new Color(163, 217, 165));
-        btnConfirmReturn.setForeground(new Color(20, 60, 20));
-        btnConfirmReturn.setFocusPainted(false);
         btnConfirmReturn.setEnabled(false); // Khóa nếu chưa quét cuốn nào
         btnConfirmReturn.addActionListener(this::xuLyXacNhanTra);
 
         // Nút: Hủy (Màu xám)
-        btnCancel = new JButton("Hủy");
+        btnCancel = createStyledButton("Hủy", new Color(241, 245, 249), new Color(30, 41, 59));
         btnCancel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btnCancel.setPreferredSize(new Dimension(100, 40));
-        btnCancel.setBackground(new Color(220, 222, 225));
-        btnCancel.setFocusPainted(false);
         btnCancel.addActionListener(this::xuLyHuy);
 
         panel.add(btnConfirmReturn);
@@ -511,23 +504,10 @@ public class ReturnBookForm extends JFrame {
         }
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        long maxLateDays = 0;
-        double totalCompFee = 0.0;
-        boolean hasScanned = false;
-
-        for (BorrowingItemDTO item : currentItems) {
-            if (item.isScanned()) {
-                hasScanned = true;
-                long days = returnController.tinhSoNgayTre(item.getDueDate(), now);
-                if (days > maxLateDays) {
-                    maxLateDays = days;
-                }
-                totalCompFee += item.getCompensationFee();
-            }
-        }
-
+        boolean hasScanned = currentItems.stream().anyMatch(BorrowingItemDTO::isScanned);
+        long maxLateDays = returnController.tinhSoNgayTreLonNhat(currentItems, now);
         double totalFine = hasScanned
-                ? returnController.tinhTienPhat(maxLateDays, currentStudent, totalCompFee)
+                ? returnController.tinhTongTienPhat(currentItems, currentStudent, now)
                 : 0.0;
 
         lblLateDaysValue.setText(maxLateDays + " ngày");
@@ -543,8 +523,8 @@ public class ReturnBookForm extends JFrame {
             btnConfirmReturn.setBackground(new Color(39, 174, 96));
             btnConfirmReturn.setForeground(Color.WHITE);
         } else {
-            btnConfirmReturn.setBackground(new Color(163, 217, 165));
-            btnConfirmReturn.setForeground(new Color(20, 60, 20));
+            btnConfirmReturn.setBackground(new Color(226, 232, 240));
+            btnConfirmReturn.setForeground(new Color(148, 163, 184));
         }
     }
 
@@ -552,8 +532,22 @@ public class ReturnBookForm extends JFrame {
         lblLateDaysValue.setText("0 ngày");
         lblTotalFineValue.setText("0 đ");
         btnConfirmReturn.setEnabled(false);
-        btnConfirmReturn.setBackground(new Color(163, 217, 165));
-        btnConfirmReturn.setForeground(new Color(20, 60, 20));
+        btnConfirmReturn.setBackground(new Color(226, 232, 240));
+        btnConfirmReturn.setForeground(new Color(148, 163, 184));
+    }
+
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(fg.equals(Color.WHITE) ? bg.darker() : new Color(203, 213, 225), 1),
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)
+        ));
+        return btn;
     }
 
     /**
@@ -580,19 +574,61 @@ public class ReturnBookForm extends JFrame {
             librarianId = "TT0001"; // Mặc định thủ thư TT0001 nếu Quản lý thực hiện hoặc chưa đăng nhập
         }
 
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        double totalFine = returnController.tinhTongTienPhat(scannedList, currentStudent, now);
+        long maxLateDays = returnController.tinhSoNgayTreLonNhat(scannedList, now);
+
+        // Điểm chạm 2: Nếu có phát sinh tiền phạt, hỏi thủ thư đã thu tiền mặt hay ghi nợ
+        boolean isPaidNow = false;
+        if (totalFine > 0) {
+            String fineMsg = String.format(
+                    "Phiên trả sách phát sinh tiền phạt:\n"
+                    + "- Tiền phạt: %,.0f VNĐ\n"
+                    + "- Số ngày trễ tối đa: %d ngày\n"
+                    + "- Sinh viên: %s (MSSV: %s)\n\n"
+                    + "Thủ thư vui lòng chọn hình thức xử lý tiền phạt:",
+                    totalFine, maxLateDays, currentStudent.getFullName(), currentStudent.getStudentId()
+            );
+
+            Object[] options = {"Đã thu tiền mặt", "Ghi nợ để trả sau", "Hủy"};
+            int choice = JOptionPane.showOptionDialog(
+                    this,
+                    fineMsg,
+                    "Thu tiền phạt trả sách",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+            );
+
+            if (choice == 0) {
+                // Đã thu tiền mặt tại quầy
+                isPaidNow = true;
+            } else if (choice == 1) {
+                // Ghi nợ để trả sau
+                isPaidNow = false;
+            } else {
+                // Hủy bỏ hoặc bấm X
+                return;
+            }
+        }
+
         // Vô hiệu hóa nút trong lúc xử lý
         btnConfirmReturn.setEnabled(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         try {
-            ReturnResult result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId);
+            ReturnResult result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId, isPaidNow);
 
             if (result.isSuccess()) {
+                String paymentNotice = isPaidNow ? "Đã thu tiền mặt tại quầy (Không cộng nợ)." : "Đã ghi nợ vào tài khoản sinh viên.";
                 String message = "XÁC NHẬN TRẢ SÁCH THÀNH CÔNG!\n\n"
                         + "Mã phiếu mượn: " + result.getSlipId() + "\n"
                         + "Số ngày trễ: " + result.getLateDays() + " ngày\n"
-                        + "Tiền phạt: " + String.format("%,.0f VNĐ", result.getFineAmount()) + "\n\n"
-                        + "Kho sách đã được cập nhật (+1) tự động.";
+                        + "Tiền phạt: " + String.format("%,.0f VNĐ", result.getFineAmount()) + "\n"
+                        + (totalFine > 0 ? ("Hình thức xử lý phạt: " + paymentNotice + "\n\n") : "\n")
+                        + "Kho sách đã được cập nhật số lượng tồn tự động.";
 
                 JOptionPane.showMessageDialog(this, message, "Kết quả trả sách", JOptionPane.INFORMATION_MESSAGE);
 
@@ -647,6 +683,8 @@ public class ReturnBookForm extends JFrame {
             setOpaque(true);
             setFont(new Font("Segoe UI", Font.PLAIN, 12));
             setBackground(new Color(245, 247, 250));
+            setForeground(new Color(30, 41, 59));
+            setBorder(new javax.swing.border.LineBorder(new Color(203, 213, 225), 1));
         }
 
         @Override
@@ -669,6 +707,8 @@ public class ReturnBookForm extends JFrame {
             button.setOpaque(true);
             button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
             button.setBackground(new Color(230, 245, 235));
+            button.setForeground(new Color(22, 101, 52));
+            button.setBorder(new javax.swing.border.LineBorder(new Color(134, 239, 172), 1));
             button.addActionListener(e -> {
                 fireEditingStopped();
                 xuLyQuetDongSach(selectedRow);
@@ -691,6 +731,10 @@ public class ReturnBookForm extends JFrame {
      * Điểm chạy thử độc lập giao diện
      */
     public static void main(String[] args) {
+        // Kích hoạt khử răng cưa chữ (Anti-Aliasing) trên toàn hệ thống Swing
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}

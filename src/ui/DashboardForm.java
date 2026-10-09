@@ -1,5 +1,8 @@
 package ui;
 
+import controller.DebtController;
+import model.DebtPaymentResult;
+import model.Student;
 import service.SessionManager;
 
 import javax.swing.*;
@@ -139,6 +142,8 @@ public class DashboardForm extends JFrame {
 
         topContainer.add(createStrut(10));
 
+        SessionManager session = SessionManager.getInstance();
+
         // Nút Tra cứu sách (Sử dụng vector icon Search)
         SidebarMenuItem btnNavSearch = new SidebarMenuItem(
                 createSearchIcon(16, COLOR_SIDEBAR_TEXT),
@@ -148,22 +153,26 @@ public class DashboardForm extends JFrame {
         topContainer.add(btnNavSearch);
         topContainer.add(createStrut(4));
 
-        // Nút Mượn sách (Sử dụng vector icon Plus)
-        SidebarMenuItem btnNavBorrow = new SidebarMenuItem(
-                createPlusIcon(16, COLOR_SIDEBAR_TEXT),
-                "Mượn sách",
-                this::openBorrowBook
-        );
-        topContainer.add(btnNavBorrow);
-        topContainer.add(createStrut(4));
+        // Chỉ hiển thị Mượn sách và Trả sách đối với Quản lý và Thủ thư
+        if (!session.isStudent()) {
+            // Nút Mượn sách (Sử dụng vector icon Plus)
+            SidebarMenuItem btnNavBorrow = new SidebarMenuItem(
+                    createPlusIcon(16, COLOR_SIDEBAR_TEXT),
+                    "Mượn sách",
+                    this::openBorrowBook
+            );
+            topContainer.add(btnNavBorrow);
+            topContainer.add(createStrut(4));
 
-        // Nút Trả sách (Sử dụng vector icon Return)
-        SidebarMenuItem btnNavReturn = new SidebarMenuItem(
-                createReturnIcon(16, COLOR_SIDEBAR_TEXT),
-                "Trả sách",
-                this::openReturnBook
-        );
-        topContainer.add(btnNavReturn);
+            // Nút Trả sách (Sử dụng vector icon Return)
+            SidebarMenuItem btnNavReturn = new SidebarMenuItem(
+                    createReturnIcon(16, COLOR_SIDEBAR_TEXT),
+                    "Trả sách",
+                    this::openReturnBook
+            );
+            topContainer.add(btnNavReturn);
+            topContainer.add(createStrut(4));
+        }
 
         topContainer.add(createStrut(24));
 
@@ -251,9 +260,20 @@ public class DashboardForm extends JFrame {
     }
 
     /**
-     * Tạo khu vực nội dung chính ở giữa
+     * Tạo khu vực nội dung chính ở giữa (phân chia theo vai trò Sinh viên hoặc Cán bộ thư viện)
      */
     private JPanel createContentPanel() {
+        SessionManager session = SessionManager.getInstance();
+        if (session.isStudent()) {
+            return createStudentContentPanel();
+        }
+        return createStaffContentPanel();
+    }
+
+    /**
+     * Panel dành cho Cán bộ thư viện (Thủ thư / Quản lý)
+     */
+    private JPanel createStaffContentPanel() {
         JPanel content = new JPanel();
         content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
         content.setBackground(COLOR_BG);
@@ -324,6 +344,257 @@ public class DashboardForm extends JFrame {
         content.add(sessionStatusCard);
 
         return content;
+    }
+
+    /**
+     * Panel dành riêng cho Sinh viên: Xem thông tin mượn và thanh toán nợ phạt trực tuyến
+     */
+    private JPanel createStudentContentPanel() {
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(COLOR_BG);
+        content.setBorder(new EmptyBorder(25, 28, 25, 28));
+
+        // 1. Tiêu đề
+        JLabel lblTitle = new JLabel("Cổng thông tin Sinh viên");
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 22));
+        lblTitle.setForeground(COLOR_TEXT_MAIN);
+        lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JLabel lblSubtitle = new JLabel("Tra cứu tài liệu thư viện & Quản lý thông tin mượn trả, nợ phạt.");
+        lblSubtitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        lblSubtitle.setForeground(COLOR_TEXT_SUB);
+        lblSubtitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        content.add(lblTitle);
+        content.add(Box.createVerticalStrut(4));
+        content.add(lblSubtitle);
+        content.add(Box.createVerticalStrut(22));
+
+        // 2. Tải dữ liệu sinh viên từ Database
+        Student student = loadCurrentStudentData();
+        int borrowedCount = (student != null) ? student.getBorrowedCount() : 0;
+        double debt = (student != null) ? student.getDebtAmount() : 0.0;
+
+        // 3. Hàng thẻ tóm tắt
+        JPanel cardsRow = new JPanel(new GridLayout(1, 3, 18, 0));
+        cardsRow.setBackground(COLOR_BG);
+        cardsRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 105));
+        cardsRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        // Thẻ 1: Tra cứu sách
+        JPanel cardSearch = createActionCard(
+                "TRA CỨU SÁCH",
+                "Tìm kiếm sách & tài liệu trong kho",
+                new Color(239, 246, 255),
+                new Color(37, 99, 235),
+                createSearchIcon(22, new Color(37, 99, 235)),
+                this::openSearchBook
+        );
+
+        // Thẻ 2: Số sách đang mượn
+        JPanel cardBorrow = createStatCard(
+                "SÁCH ĐANG MƯỢN",
+                borrowedCount + " cuốn",
+                new Color(236, 253, 245),
+                new Color(5, 150, 105),
+                createPlusIcon(20, new Color(5, 150, 105))
+        );
+
+        // Thẻ 3: Tiền phạt đang nợ
+        JPanel cardDebt = createStatCard(
+                "TIỀN PHẠT ĐANG NỢ",
+                String.format("%,.0f VNĐ", debt),
+                debt > 0 ? new Color(254, 242, 242) : new Color(240, 253, 244),
+                debt > 0 ? new Color(220, 38, 38) : new Color(22, 163, 74),
+                createPaymentIcon(20, debt > 0 ? new Color(220, 38, 38) : new Color(22, 163, 74))
+        );
+
+        cardsRow.add(cardSearch);
+        cardsRow.add(cardBorrow);
+        cardsRow.add(cardDebt);
+        content.add(cardsRow);
+
+        content.add(Box.createVerticalStrut(20));
+
+        // 4. Khung Thanh toán nợ phạt trực tuyến
+        JPanel debtPayCard = createStudentDebtPaymentCard(student);
+        debtPayCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(debtPayCard);
+
+        content.add(Box.createVerticalStrut(20));
+
+        // 5. Khung Trạng thái phiên làm việc
+        sessionStatusCard = createSessionStatusCard();
+        sessionStatusCard.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(sessionStatusCard);
+
+        return content;
+    }
+
+    private JPanel createStatCard(String title, String value, Color iconBgColor, Color textColor, Icon icon) {
+        JPanel card = new JPanel(new BorderLayout(14, 0));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_CARD_BORDER, 1, true),
+                new EmptyBorder(16, 16, 16, 16)
+        ));
+
+        JPanel iconBox = new JPanel(new GridBagLayout());
+        iconBox.setPreferredSize(new Dimension(48, 48));
+        iconBox.setBackground(iconBgColor);
+        iconBox.setBorder(new LineBorder(iconBgColor, 1, true));
+        if (icon != null) {
+            iconBox.add(new JLabel(icon));
+        }
+
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setBackground(Color.WHITE);
+
+        JLabel lblTitle = new JLabel(title);
+        lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblTitle.setForeground(COLOR_TEXT_SUB);
+
+        JLabel lblValue = new JLabel(value);
+        lblValue.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        lblValue.setForeground(textColor);
+
+        textPanel.add(Box.createVerticalGlue());
+        textPanel.add(lblTitle);
+        textPanel.add(Box.createVerticalStrut(4));
+        textPanel.add(lblValue);
+        textPanel.add(Box.createVerticalGlue());
+
+        card.add(iconBox, BorderLayout.WEST);
+        card.add(textPanel, BorderLayout.CENTER);
+        return card;
+    }
+
+    private JPanel createStudentDebtPaymentCard(Student student) {
+        JPanel card = new JPanel();
+        card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
+        card.setBackground(Color.WHITE);
+        card.setBorder(BorderFactory.createCompoundBorder(
+                new LineBorder(COLOR_CARD_BORDER, 1, true),
+                new EmptyBorder(20, 22, 20, 22)
+        ));
+        card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 175));
+
+        // Header
+        JPanel headerRow = new JPanel(new BorderLayout());
+        headerRow.setBackground(Color.WHITE);
+
+        JLabel lblHeaderTitle = new JLabel("Thanh toán tiền phạt trực tuyến (Demo)");
+        lblHeaderTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        lblHeaderTitle.setForeground(COLOR_TEXT_MAIN);
+
+        double debt = (student != null) ? student.getDebtAmount() : 0.0;
+        JLabel lblStatusBadge = new JLabel(debt > 0 ? "● Đang có nợ phạt" : "● Không có nợ phạt");
+        lblStatusBadge.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        lblStatusBadge.setForeground(debt > 0 ? new Color(220, 38, 38) : COLOR_SUCCESS);
+
+        headerRow.add(lblHeaderTitle, BorderLayout.WEST);
+        headerRow.add(lblStatusBadge, BorderLayout.EAST);
+        card.add(headerRow);
+
+        card.add(Box.createVerticalStrut(14));
+
+        String studentId = (student != null) ? student.getStudentId() : "—";
+        String studentName = (student != null) ? student.getFullName() : "—";
+        card.add(createSessionInfoRow("Sinh viên: ", studentId + " - " + studentName));
+        card.add(Box.createVerticalStrut(6));
+        card.add(createSessionInfoRow("Tiền phạt chưa thanh toán: ", String.format("%,.0f VNĐ", debt)));
+        card.add(Box.createVerticalStrut(14));
+
+        JPanel actionRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        actionRow.setBackground(Color.WHITE);
+
+        if (debt > 0) {
+            JButton btnPay = createStyledButton("Thanh toán tiền phạt trực tuyến (" + String.format("%,.0f VNĐ", debt) + ")", new Color(39, 174, 96), Color.WHITE);
+            btnPay.setPreferredSize(new Dimension(340, 38));
+            btnPay.addActionListener(e -> handleStudentOnlinePayment(student));
+            actionRow.add(btnPay);
+        } else {
+            JButton btnPaid = createStyledButton("Đã thanh toán hết nợ phạt (0 đ)", new Color(241, 245, 249), new Color(100, 116, 139));
+            btnPaid.setPreferredSize(new Dimension(260, 38));
+            btnPaid.setEnabled(false);
+            actionRow.add(btnPaid);
+        }
+
+        card.add(actionRow);
+        return card;
+    }
+
+    private Student loadCurrentStudentData() {
+        SessionManager session = SessionManager.getInstance();
+        if (!session.isLoggedIn() || !session.isStudent()) {
+            return null;
+        }
+        String studentId = session.getUserId();
+        if (studentId == null || studentId.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            DebtController debtController = new DebtController();
+            return debtController.layThongTinNoSinhVien(studentId.trim());
+        } catch (Exception e) {
+            System.err.println("[DashboardForm] Lỗi tải dữ liệu sinh viên: " + e.getMessage());
+            return null;
+        }
+    }
+
+    private void handleStudentOnlinePayment(Student student) {
+        if (student == null) return;
+        double debt = student.getDebtAmount();
+        if (debt <= 0) {
+            JOptionPane.showMessageDialog(this, "Bạn không có nợ tiền phạt cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int choice = JOptionPane.showConfirmDialog(
+                this,
+                "Xác nhận thanh toán toàn bộ " + String.format("%,.0f VNĐ", debt) + " tiền phạt qua cổng trực tuyến?",
+                "Xác nhận thanh toán online",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+        );
+
+        if (choice == JOptionPane.YES_OPTION) {
+            DebtController debtController = new DebtController();
+            DebtPaymentResult result = debtController.thanhToanNo(
+                    student.getStudentId(),
+                    debt,
+                    "ONLINE",
+                    student.getStudentId()
+            );
+
+            if (result.isSuccess()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Thanh toán tiền phạt trực tuyến thành công!\n"
+                                + "Số nợ hiện tại của bạn: 0 VNĐ.\n"
+                                + "Tài khoản hiện đã đủ điều kiện mượn sách tại thư viện.",
+                        "Thanh toán thành công",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
+                refreshDashboard();
+            } else {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Lỗi khi thực hiện thanh toán: " + result.getMessage(),
+                        "Lỗi",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
+        }
+    }
+
+    private void refreshDashboard() {
+        getContentPane().removeAll();
+        initComponents();
+        revalidate();
+        repaint();
     }
 
     /**
@@ -694,9 +965,10 @@ public class DashboardForm extends JFrame {
 
         panel.add(Box.createVerticalStrut(20));
 
-        JButton btnClose = new JButton("Đóng");
+        JButton btnClose = createStyledButton("Đóng", new Color(241, 245, 249), new Color(30, 41, 59));
         btnClose.setFont(new Font("Segoe UI", Font.BOLD, 13));
         btnClose.setPreferredSize(new Dimension(100, 35));
+        btnClose.setMaximumSize(new Dimension(100, 35));
         btnClose.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnClose.addActionListener(e -> dialog.dispose());
         panel.add(btnClose);
@@ -853,6 +1125,34 @@ public class DashboardForm extends JFrame {
         };
     }
 
+    public static Icon createPaymentIcon(int size, Color color) {
+        return new Icon() {
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(color);
+                g2.setStroke(new BasicStroke(size >= 20 ? 2.0f : 1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+
+                int w = (int) (size * 0.82);
+                int h = (int) (size * 0.60);
+                int startX = x + (size - w) / 2;
+                int startY = y + (size - h) / 2;
+
+                // Thẻ ngân hàng / Tiền mặt
+                g2.drawRoundRect(startX, startY, w, h, 3, 3);
+                g2.drawLine(startX, startY + (int) (h * 0.38), startX + w, startY + (int) (h * 0.38));
+                g2.fillOval(startX + (int) (w * 0.18), startY + (int) (h * 0.62), (int)(size * 0.15), (int)(size * 0.15));
+                g2.dispose();
+            }
+
+            @Override
+            public int getIconWidth() { return size; }
+            @Override
+            public int getIconHeight() { return size; }
+        };
+    }
+
     public static Icon createLogoutIcon(int size, Color color) {
         return new Icon() {
             @Override
@@ -880,10 +1180,28 @@ public class DashboardForm extends JFrame {
         };
     }
 
+    private JButton createStyledButton(String text, Color bg, Color fg) {
+        JButton btn = new JButton(text);
+        btn.setUI(new javax.swing.plaf.basic.BasicButtonUI());
+        btn.setBackground(bg);
+        btn.setForeground(fg);
+        btn.setFocusPainted(false);
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btn.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(fg.equals(Color.WHITE) ? bg.darker() : new Color(203, 213, 225), 1),
+                BorderFactory.createEmptyBorder(6, 14, 6, 14)
+        ));
+        return btn;
+    }
+
     /**
      * Điểm chạy thử độc lập Dashboard
      */
     public static void main(String[] args) {
+        // Kích hoạt khử răng cưa chữ (Anti-Aliasing) trên toàn hệ thống Swing
+        System.setProperty("awt.useSystemAAFontSettings", "on");
+        System.setProperty("swing.aatext", "true");
+
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}

@@ -13,6 +13,34 @@ import java.util.List;
 public class BookRepository {
 
     /**
+     * Lấy toàn bộ danh sách đầu sách có trong thư viện (sắp xếp theo mã sách).
+     *
+     */
+    public List<Book> getAllBooks() throws SQLException {
+        List<Book> books = new ArrayList<>();
+        String sql = """
+                SELECT ma_dau_sach, tac_sach, tac_gia, so_luong_con, mo_ta
+                FROM dau_sach
+                ORDER BY ma_dau_sach ASC
+                """;
+        Connection connection = DBConnection.getInstance().getConnection();
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+            while (resultSet.next()) {
+                Book book = new Book(
+                        resultSet.getString("ma_dau_sach"),
+                        resultSet.getString("tac_sach"),
+                        resultSet.getString("tac_gia"),
+                        resultSet.getInt("so_luong_con"),
+                        resultSet.getString("mo_ta")
+                );
+                books.add(book);
+            }
+        }
+        return books;
+    }
+
+    /**
      * Tìm kiếm sách theo từ khóa (mã sách, tên sách hoặc tác giả)
      */
     public List<Book> searchBooks(String keyword) throws SQLException {

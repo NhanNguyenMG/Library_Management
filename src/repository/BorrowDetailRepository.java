@@ -88,9 +88,62 @@ public class BorrowDetailRepository {
     }
 
     /**
-     * 5. Đếm tổng số cuốn sách sinh viên đang mượn (thuộc các phiếu chưa trả).
-     * Tính trực tiếp từ phiếu mượn thay vì đọc cột sinh_vien.so_sach_dang_muon,
-     * để kết quả luôn đúng với dữ liệu phiếu thực tế (dùng cho hạn mức 5 cuốn).
+     * Lấy danh sách các chi tiết mượn CHƯA TRẢ của một phiếu mượn (ghi_chu chưa đánh dấu DA_TRA).
+     *
+     * @param slipId mã phiếu mượn
+     * @return danh sách các cuốn sách chưa trả
+     */
+    public List<BorrowDetail> findActiveBySlipId(String slipId) throws SQLException {
+        String sql = "SELECT id, ma_phieu, ma_dau_sach, so_luong, ghi_chu "
+                + "FROM chi_tiet_phieu_muon WHERE ma_phieu = ? AND (ghi_chu IS NULL OR ghi_chu NOT LIKE 'DA_TRA%') ORDER BY id";
+        List<BorrowDetail> borrowDetails = new ArrayList<>();
+        Connection conn = DBConnection.getInstance().getConnection();
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, slipId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    borrowDetails.add(mapRowToBorrowDetail(rs));
+                }
+            }
+        }
+        return borrowDetails;
+    }
+
+    /**
+     * Đánh dấu một đầu sách cụ thể trong phiếu mượn là đã trả.
+     *
+     * @param slipId mã phiếu mượn
+     * @param bookId mã đầu sách được trả
+     * @param conn kết nối Transaction đang mở
+     */
+    public void markAsReturned(String slipId, String bookId, Connection conn) throws SQLException {
+        String sql = "UPDATE chi_tiet_phieu_muon SET ghi_chu = 'DA_TRA' WHERE ma_phieu = ? AND ma_dau_sach = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, slipId);
+            ps.setString(2, bookId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Đếm số lượng đầu sách chưa trả còn lại trong phiếu mượn.
+     *
+     * @param slipId mã phiếu mượn
+     * @param conn kết nối Transaction đang mở
+     * @return số đầu sách chưa trả
+     */
+    public int countUnreturnedDetails(String slipId, Connection conn) throws SQLException {
+        String sql = "SELECT COUNT(*) AS cnt FROM chi_tiet_phieu_muon WHERE ma_phieu = ? AND (ghi_chu IS NULL OR ghi_chu NOT LIKE 'DA_TRA%')";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, slipId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt("cnt") : 0;
+            }
+        }
+    }
+
+    /**
+     * 5. Đếm tổng số cuốn sách sinh viên đang mượn (thuộc các phiếu chưa trả và sách chưa trả).
      *
      * @param studentId mã số sinh viên (mssv)
      * @return tổng số cuốn đang mượn, 0 nếu không có
@@ -99,8 +152,8 @@ public class BorrowDetailRepository {
         String sql = "SELECT COALESCE(SUM(ct.so_luong), 0) AS borrowing_count "
                 + "FROM chi_tiet_phieu_muon ct "
                 + "JOIN phieu_muon pm ON ct.ma_phieu = pm.ma_phieu "
-                + "WHERE pm.mssv = ? AND pm.ngay_tra_thuc_te IS NULL";
-        Connection conn = DBConnection.getInstance().getConnection(); // Không đóng: kết nối dùng chung
+                + "WHERE pm.mssv = ? AND pm.ngay_tra_thuc_te IS NULL AND (ct.ghi_chu IS NULL OR ct.ghi_chu NOT LIKE 'DA_TRA%')";
+        Connection conn = DBConnection.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, studentId);
             try (ResultSet rs = ps.executeQuery()) {
