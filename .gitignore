@@ -55,3 +55,7 @@ Thumbs.db
 
 # Word temporary files
 ~$*.docx
+
+# Local environment database configuration (template is in src/db/db.properties)
+/db.properties
+
