@@ -89,6 +89,23 @@ public class StudentRepository {
     }
 
     /**
+     * Giảm số tiền nợ của sinh viên (khi thanh toán nợ).
+     *
+     * @param studentId mã số sinh viên
+     * @param paidAmount số tiền nợ được trả
+     * @param conn kết nối Transaction đang mở
+     * @throws SQLException nếu ghi CSDL thất bại
+     */
+    public void deductDebt(String studentId, double paidAmount, Connection conn) throws SQLException {
+        String sql = "UPDATE sinh_vien SET so_tien_no = GREATEST(0, so_tien_no - ?) WHERE mssv = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, paidAmount);
+            ps.setString(2, studentId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
      * Cập nhật số sách đang mượn (giảm khi trả sách).
      *
      * @param studentId mã số sinh viên
