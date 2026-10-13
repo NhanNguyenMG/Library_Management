@@ -13,20 +13,20 @@ import java.util.Properties;
  */
 public class DBConnection {
 
-    // 1. Biến static duy nhất lưu trữ thể hiện (instance) của lớp
+    // Thể hiện duy nhất của lớp (Singleton instance)
     private static DBConnection instance;
 
-    // 2. Đối tượng kết nối JDBC
+    // Đối tượng kết nối JDBC
     private Connection connection;
 
-    // 3. Các thông số cấu hình mặc định (fallback khi không tìm thấy file cấu hình)
+    // Cấu hình kết nối cơ sở dữ liệu mặc định
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String url = "jdbc:mysql://localhost:3306/quan_li_thu_vien?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8";
     private String user = "root";
     private String password = "";
 
     /**
-     * Constructor đặt ở chế độ private để ngăn chặn việc tạo đối tượng tùy tiện từ bên ngoài bằng từ khóa 'new'.
+     * Khởi tạo đối tượng với phạm vi private theo mẫu Singleton.
      */
     private DBConnection() {
         loadConfiguration();

@@ -25,7 +25,7 @@ public class SessionManager {
     private Date loginTime;
 
     /**
-     * Constructor private để bảo vệ tính toàn vẹn của Singleton.
+     * Khởi tạo đối tượng với phạm vi private theo mẫu Singleton.
      */
     private SessionManager() {
         clearSession();
