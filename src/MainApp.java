@@ -35,19 +35,19 @@ public class MainApp {
      * Kiểm tra kết nối CSDL và khởi động form tương ứng.
      */
     private static void checkDatabaseAndLaunch() {
-        System.out.println("=================================================================");
-        System.out.println(" KHỞI ĐỘNG " + APP_TITLE);
-        System.out.println(" " + APP_VERSION);
-        System.out.println("=================================================================");
-        System.out.println("[MainApp] Đang kiểm tra kết nối tới MySQL Server...");
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println("[MainApp] Khởi động: " + APP_TITLE);
+        System.out.println("[MainApp] Phiên bản: " + APP_VERSION);
+        System.out.println("-----------------------------------------------------------------");
+        System.out.println("[MainApp] Kiểm tra kết nối tới MySQL Server...");
 
         boolean isDbConnected = DBConnection.getInstance().testConnection(4);
 
         if (isDbConnected) {
-            System.out.println("[MainApp] Kết nối CSDL thành công! Đang mở màn hình Đăng nhập...");
+            System.out.println("[MainApp] Kết nối CSDL thành công. Đang mở màn hình Đăng nhập...");
             openLoginForm();
         } else {
-            System.err.println("[MainApp CẢNH BÁO] Không thể kết nối tới cơ sở dữ liệu MySQL!");
+            System.err.println("[MainApp][CẢNH BÁO] Không thể kết nối tới cơ sở dữ liệu MySQL.");
             
             String errorMessage = "<html><body style='width: 380px; font-family: sans-serif;'>"
                     + "<h3 style='color: #c0392b;'>Không thể kết nối Cơ sở dữ liệu MySQL!</h3>"
@@ -72,7 +72,7 @@ public class MainApp {
             if (option == JOptionPane.YES_OPTION) {
                 openLoginForm();
             } else {
-                System.out.println("[MainApp] Người dùng đã hủy khởi động ứng dụng.");
+                System.out.println("[MainApp] Đã hủy khởi động ứng dụng.");
                 System.exit(0);
             }
         }
@@ -89,9 +89,9 @@ public class MainApp {
             loginFrame.setVisible(true);
             return;
         } catch (ClassNotFoundException e) {
-            System.out.println("[MainApp] Form ui.LoginForm chưa có sẵn, hiển thị màn hình kiểm tra hệ thống...");
+            System.out.println("[MainApp] ui.LoginForm chưa sẵn sàng, hiển thị màn hình kiểm tra hệ thống...");
         } catch (Exception e) {
-            System.err.println("[MainApp LỖI khởi chạy LoginForm]: " + e.getMessage());
+            System.err.println("[MainApp][LỖI] Lỗi khởi chạy LoginForm: " + e.getMessage());
             e.printStackTrace();
         }
 
