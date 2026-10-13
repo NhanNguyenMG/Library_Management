@@ -187,16 +187,16 @@ public class DBConnection {
     }
 
     /**
-     * Hàm main hỗ trợ chạy kiểm thử nhanh kết nối CSDL trực tiếp từ IDE hoặc dòng lệnh.
+     * Hàm main hỗ trợ kiểm tra nhanh kết nối CSDL khi cần thiết.
      */
     public static void main(String[] args) {
-        System.out.println("=== KIỂM THỬ KẾT NỐI CƠ SỞ DỮ LIỆU MYSQL ===");
+        System.out.println("[DBConnection] Kiểm tra kết nối cơ sở dữ liệu MySQL...");
         DBConnection db = DBConnection.getInstance();
         boolean success = db.testConnection(5);
         if (success) {
-            System.out.println(">>> KẾT QUẢ: KẾT NỐI TỚI DATABASE 'quan_li_thu_vien' THÀNH CÔNG RỰC RỠ! <<<");
+            System.out.println("[DBConnection] Kết nối cơ sở dữ liệu 'quan_li_thu_vien' thành công.");
         } else {
-            System.err.println(">>> KẾT QUẢ: KẾT NỐI THẤT BẠI. Hãy kiểm tra dịch vụ MySQL và mật khẩu. <<<");
+            System.err.println("[DBConnection][LỖI] Kết nối thất bại. Vui lòng kiểm tra lại dịch vụ MySQL và cấu hình kết nối.");
         }
     }
 }

@@ -157,7 +157,7 @@ public class MainApp {
         boolean dbStatus = DBConnection.getInstance().testConnection(2);
         sb.append("1. TRẠNG THÁI KẾT NỐI CSDL MYSQL:\n");
         if (dbStatus) {
-            sb.append("   -> KẾT NỐI: [ THÀNH CÔNG RỰC RỠ ]\n");
+            sb.append("   -> KẾT NỐI: [ THÀNH CÔNG ]\n");
             sb.append("   -> Cơ sở dữ liệu: quan_li_thu_vien\n");
             sb.append("   -> Driver: com.mysql.cj.jdbc.Driver (MySQL Connector/J 8.3.0)\n\n");
         } else {
