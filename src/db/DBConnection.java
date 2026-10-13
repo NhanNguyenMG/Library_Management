@@ -9,17 +9,13 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * Quản lý kết nối cơ sở dữ liệu MySQL theo mẫu Singleton
+ * Quản lý kết nối cơ sở dữ liệu MySQL theo mẫu thiết kế Singleton.
  */
 public class DBConnection {
 
-    // Thể hiện duy nhất của lớp (Singleton instance)
     private static DBConnection instance;
-
-    // Đối tượng kết nối JDBC
     private Connection connection;
 
-    // Cấu hình kết nối cơ sở dữ liệu mặc định
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String url = "jdbc:mysql://localhost:3306/quan_li_thu_vien?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8";
     private String user = "root";
@@ -34,51 +30,37 @@ public class DBConnection {
     }
 
     /**
-     * Tải cấu hình từ file db.properties.
-     * Thứ tự ưu tiên tìm kiếm:
-     * 1. Classpath (resources)
-     * 2. Thư mục hiện tại (project root)
-     * 3. Thư mục src/db/db.properties
+     * Nạp cấu hình kết nối từ tệp db.properties.
+     * Thứ tự ưu tiên:
+     * 1. Đường dẫn tệp vật lý (db.properties, src/db/db.properties)
+     * 2. Classpath resource (db/db.properties, db.properties)
      */
     private void loadConfiguration() {
         Properties props = new Properties();
         boolean loaded = false;
 
-        // Ưu tiên 1: File cấu hình cục bộ ở thư mục gốc (db.properties)
-        File rootFile = new File("db.properties");
-        if (rootFile.exists()) {
-            try (FileInputStream fis = new FileInputStream(rootFile)) {
-                props.load(fis);
-                loaded = true;
-            } catch (Exception ignored) {}
-        }
-
-        // Ưu tiên 2: Classpath resources
-        if (!loaded) {
-            try (InputStream is = getClass().getClassLoader().getResourceAsStream("db/db.properties")) {
-                if (is != null) {
-                    props.load(is);
+        String[] candidatePaths = {"db.properties", "src/db/db.properties"};
+        for (String path : candidatePaths) {
+            File file = new File(path);
+            if (file.exists() && file.isFile()) {
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    props.load(fis);
                     loaded = true;
-                }
-            } catch (Exception ignored) {}
+                    break;
+                } catch (Exception ignored) {}
+            }
         }
 
-        // Thử tìm theo đường dẫn file vật lý
         if (!loaded) {
-            File[] files = new File[] {
-                new File("db.properties"),
-                new File("src/db/db.properties"),
-                new File("LibraryManagement/db.properties"),
-                new File("LibraryManagement/src/db/db.properties")
-            };
-            for (File file : files) {
-                if (file.exists()) {
-                    try (FileInputStream fis = new FileInputStream(file)) {
-                        props.load(fis);
+            String[] resourcePaths = {"db/db.properties", "db.properties"};
+            for (String res : resourcePaths) {
+                try (InputStream is = getClass().getClassLoader().getResourceAsStream(res)) {
+                    if (is != null) {
+                        props.load(is);
                         loaded = true;
                         break;
-                    } catch (Exception ignored) {}
-                }
+                    }
+                } catch (Exception ignored) {}
             }
         }
 
@@ -87,28 +69,27 @@ public class DBConnection {
             if (props.getProperty("db.url") != null) this.url = props.getProperty("db.url").trim();
             if (props.getProperty("db.user") != null) this.user = props.getProperty("db.user").trim();
             if (props.getProperty("db.password") != null) this.password = props.getProperty("db.password").trim();
-            System.out.println("[INFO] [DBConnection] Đã tải thành công cấu hình kết nối từ tệp db.properties.");
+            System.out.println("[INFO] [DBConnection] Nạp cấu hình từ db.properties thành công.");
         } else {
-            System.out.println("[WARN] [DBConnection] Không tìm thấy tệp db.properties; áp dụng cấu hình kết nối mặc định (root@localhost:3306).");
+            System.out.println("[WARN] [DBConnection] Không tìm thấy db.properties; áp dụng cấu hình mặc định (root@localhost:3306).");
         }
     }
 
     /**
-     * Nạp MySQL JDBC Driver vào bộ nhớ JVM.
+     * Nạp MySQL JDBC Driver vào JVM.
      */
     private void initDriver() {
         try {
             Class.forName(driver);
-            System.out.println("[INFO] [DBConnection] Đã nạp thành công MySQL JDBC Driver: " + driver);
+            System.out.println("[INFO] [DBConnection] Nạp JDBC Driver thành công: " + driver);
         } catch (ClassNotFoundException e) {
-            System.err.println("[ERROR] [DBConnection] Không tìm thấy trình điều khiển MySQL JDBC Driver trong classpath.");
-            System.err.println("[ERROR] [DBConnection] Vui lòng đảm bảo tệp thư viện mysql-connector-j đã được thêm vào Classpath/lib của dự án.");
+            System.err.println("[ERROR] [DBConnection] Không tìm thấy JDBC Driver trong classpath: " + driver);
             e.printStackTrace();
         }
     }
 
     /**
-     * Phương thức tĩnh cung cấp điểm truy cập toàn cục tới thể hiện duy nhất của lớp (Thread-Safe).
+     * Cung cấp điểm truy cập toàn cục tới thể hiện duy nhất của lớp (Thread-Safe).
      * 
      * @return DBConnection đối tượng duy nhất
      */
@@ -121,7 +102,7 @@ public class DBConnection {
 
     /**
      * Lấy kết nối JDBC đang hoạt động.
-     * Nếu kết nối chưa mở hoặc đã bị đóng, tự động khởi tạo kết nối mới.
+     * Tự động tái tạo kết nối nếu kết nối chưa mở hoặc đã bị đóng.
      * 
      * @return Connection đối tượng kết nối SQL
      * @throws SQLException nếu kết nối thất bại
@@ -130,10 +111,9 @@ public class DBConnection {
         if (connection == null || connection.isClosed()) {
             try {
                 connection = DriverManager.getConnection(url, user, password);
-                System.out.println("[INFO] [DBConnection] Thiết lập kết nối thành công tới cơ sở dữ liệu: " + url.split("\\?")[0]);
+                System.out.println("[INFO] [DBConnection] Thiết lập kết nối CSDL thành công: " + url.split("\\?")[0]);
             } catch (SQLException e) {
-                System.err.println("[ERROR] [DBConnection] Không thể thiết lập kết nối tới máy chủ cơ sở dữ liệu MySQL.");
-                System.err.println("[ERROR] [DBConnection] Vui lòng kiểm tra: Dịch vụ MySQL đang hoạt động, thông tin tài khoản tại db.properties và cơ sở dữ liệu 'quan_li_thu_vien'.");
+                System.err.println("[ERROR] [DBConnection] Lỗi thiết lập kết nối CSDL (" + url.split("\\?")[0] + "): " + e.getMessage());
                 throw e;
             }
         }
@@ -144,7 +124,7 @@ public class DBConnection {
      * Kiểm tra trạng thái kết nối tới CSDL.
      * 
      * @param timeoutSeconds thời gian tối đa chờ phản hồi (giây)
-     * @return true nếu kết nối hoạt động bình thường, false nếu thất bại
+     * @return true nếu kết nối hợp lệ, ngược lại false
      */
     public boolean testConnection(int timeoutSeconds) {
         try {
@@ -156,14 +136,14 @@ public class DBConnection {
     }
 
     /**
-     * Đóng kết nối an toàn khi tắt ứng dụng.
+     * Đóng kết nối CSDL và giải phóng tài nguyên.
      */
     public synchronized void closeConnection() {
         if (connection != null) {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                    System.out.println("[INFO] [DBConnection] Đã đóng kết nối cơ sở dữ liệu an toàn.");
+                    System.out.println("[INFO] [DBConnection] Đã đóng kết nối CSDL.");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -174,18 +154,15 @@ public class DBConnection {
     }
 
     /**
-     * Hàm main hỗ trợ kiểm tra nhanh kết nối CSDL khi cần thiết.
+     * Điểm kiểm tra chẩn đoán kết nối CSDL độc lập.
      */
     public static void main(String[] args) {
-        System.out.println("=================================================");
-        System.out.println("[DIAGNOSTIC] Kiểm tra kết nối cơ sở dữ liệu MySQL");
-        System.out.println("=================================================");
-        DBConnection db = DBConnection.getInstance();
-        boolean success = db.testConnection(5);
+        System.out.println("[DIAGNOSTIC] Kiểm tra kết nối CSDL MySQL...");
+        boolean success = DBConnection.getInstance().testConnection(5);
         if (success) {
-            System.out.println("[SUCCESS] Kết nối đến cơ sở dữ liệu thành công.");
+            System.out.println("[SUCCESS] Kết nối cơ sở dữ liệu thành công.");
         } else {
-            System.err.println("[FAILED] Kết nối cơ sở dữ liệu thất bại. Vui lòng kiểm tra dịch vụ MySQL và thông số xác thực.");
+            System.err.println("[FAILED] Kết nối cơ sở dữ liệu thất bại. Vui lòng kiểm tra dịch vụ MySQL và thông số kết nối.");
         }
     }
 }

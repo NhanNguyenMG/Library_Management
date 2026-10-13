@@ -1,15 +1,5 @@
--- =====================================================================
--- DỰ ÁN: HỆ THỐNG QUẢN LÝ THƯ VIỆN (LIBRARY MANAGEMENT SYSTEM)
--- MÔN HỌC: CÔNG NGHỆ PHẦN MỀM (SOEN330679)
--- FILE TỔNG HỢP: setup_database.sql (1-CLICK SETUP)
--- BAO GỒM: TẠO DATABASE -> TẠO BẢNG -> TẠO INDEX -> CHÈN SEED DATA
--- NGƯỜI THỰC HIỆN: Người số 5 (Hạ tầng chung & CSDL)
--- ĐÃ CHUẨN HÓA THEO CODING_STANDARDS.md & PROJECT_PLAN.md
--- =====================================================================
 
--- -------------------------------------------------------------
 -- PHẦN 1: KHỞI TẠO CƠ SỞ DỮ LIỆU
--- -------------------------------------------------------------
 CREATE DATABASE IF NOT EXISTS quan_li_thu_vien 
 CHARACTER SET utf8mb4 
 COLLATE utf8mb4_unicode_ci;
@@ -28,9 +18,7 @@ DROP TABLE IF EXISTS thu_thu;
 DROP TABLE IF EXISTS quan_li;
 DROP TABLE IF EXISTS tai_khoan;
 
--- -------------------------------------------------------------
 -- PHẦN 2: TẠO CẤU TRÚC 8 BẢNG THEO SRS & GLOSSARY MAPPING
--- -------------------------------------------------------------
 CREATE TABLE tai_khoan (
     ten_dang_nhap VARCHAR(50) PRIMARY KEY,
     mat_khau VARCHAR(255) NOT NULL COMMENT 'Độ dài 255 ký tự hỗ trợ mã hóa mật khẩu theo SRS',
@@ -110,9 +98,7 @@ CREATE TABLE thanh_toan (
     FOREIGN KEY (ma_phieu) REFERENCES phieu_muon(ma_phieu) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- -------------------------------------------------------------
 -- PHẦN 3: TẠO CÁC INDEX TỐI ƯU TRUY VẤN
--- -------------------------------------------------------------
 CREATE INDEX idx_phieumuon_mssv        ON phieu_muon(mssv);
 CREATE INDEX idx_phieumuon_nhanvien    ON phieu_muon(ma_nhan_vien);
 CREATE INDEX idx_phieumuon_hantra      ON phieu_muon(han_tra);
@@ -129,9 +115,7 @@ CREATE INDEX idx_dausach_soluongcon    ON dau_sach(ma_dau_sach, so_luong_con);
 CREATE INDEX idx_sinhvien_sotienno     ON sinh_vien(so_tien_no);
 CREATE INDEX idx_thanhtoan_trangthai   ON thanh_toan(trang_thai);
 
--- -------------------------------------------------------------
 -- PHẦN 4: CHÈN BỘ DỮ LIỆU MẪU (SEED DATA ĐỦ 16 TEST CASE)
--- -------------------------------------------------------------
 INSERT INTO tai_khoan (ten_dang_nhap, mat_khau, quyen_truy_cap, trang_thai) VALUES
 ('admin',     'admin123',  'QUAN_LI',   'ACTIVE'),
 ('thuthu01',  'thuthu123', 'THU_THU',   'ACTIVE'),

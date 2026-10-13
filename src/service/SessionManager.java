@@ -3,24 +3,21 @@ package service;
 import java.util.Date;
 
 /**
- * Quản lý phiên làm việc của người dùng hiện tại
+ * Quản lý phiên làm việc của người dùng hiện tại theo mẫu thiết kế Singleton.
  */
 public class SessionManager {
 
-    // Các hằng số vai trò hệ thống
     public static final String ROLE_MANAGER   = "QUAN_LI";
     public static final String ROLE_LIBRARIAN = "THU_THU";
     public static final String ROLE_STUDENT   = "SINH_VIEN";
 
-    // 1. Thể hiện duy nhất của SessionManager (Singleton)
     private static SessionManager instance;
 
-    // 2. Thông tin phiên làm việc
     private boolean loggedIn = false;
     private String username;
-    private String role;          // QUAN_LI, THU_THU, SINH_VIEN
-    private String userId;        // mssv, ma_nhan_vien, hoặc ma_quan_li
-    private String fullName;      // Họ và tên hiển thị trên giao diện
+    private String role;
+    private String userId;
+    private String fullName;
     private String email;
     private Date loginTime;
 
@@ -44,12 +41,12 @@ public class SessionManager {
     }
 
     /**
-     * Thiết lập phiên làm việc khi người dùng đăng nhập thành công (gọi từ LoginService).
+     * Thiết lập phiên làm việc khi người dùng xác thực thành công.
      * 
      * @param username tên đăng nhập
-     * @param role vai trò (QUAN_LI, THU_THU, SINH_VIEN)
-     * @param userId mã định danh (MSSV hoặc mã nhân viên)
-     * @param fullName họ tên đầy đủ
+     * @param role vai trò người dùng (QUAN_LI, THU_THU, SINH_VIEN)
+     * @param userId mã định danh người dùng (MSSV, mã nhân viên hoặc mã quản lý)
+     * @param fullName họ tên hiển thị
      * @param email địa chỉ email
      */
     public synchronized void login(String username, String role, String userId, String fullName, String email) {
@@ -60,19 +57,19 @@ public class SessionManager {
         this.fullName = fullName;
         this.email = email;
         this.loginTime = new Date();
-        System.out.println("[INFO] [SessionManager] Người dùng đăng nhập thành công: " + fullName + " [" + this.role + "] lúc " + loginTime);
+        System.out.println("[INFO] [SessionManager] Khởi tạo phiên: " + username + " (" + this.role + ")");
     }
 
     /**
-     * Đăng xuất khỏi hệ thống, xóa sạch thông tin phiên làm việc.
+     * Đăng xuất và hủy phiên làm việc hiện tại.
      */
     public synchronized void logout() {
-        System.out.println("[INFO] [SessionManager] Người dùng '" + this.username + "' đã đăng xuất khỏi hệ thống.");
+        System.out.println("[INFO] [SessionManager] Hủy phiên người dùng: " + this.username);
         clearSession();
     }
 
     /**
-     * Xóa dữ liệu phiên làm việc nội bộ.
+     * Đặt lại toàn bộ thông tin phiên về mặc định.
      */
     private void clearSession() {
         this.loggedIn = false;
@@ -85,17 +82,19 @@ public class SessionManager {
     }
 
     /**
-     * Kiểm tra xem người dùng đã đăng nhập hay chưa.
+     * Kiểm tra trạng thái đăng nhập.
+     * 
+     * @return true nếu phiên đang hoạt động, ngược lại false
      */
     public synchronized boolean isLoggedIn() {
         return this.loggedIn;
     }
 
     /**
-     * Kiểm tra xem người dùng hiện tại có vai trò tương ứng hay không.
+     * Kiểm tra người dùng hiện tại có vai trò tương ứng hay không.
      * 
-     * @param requiredRole vai trò cần kiểm tra (ví dụ: SessionManager.ROLE_LIBRARIAN)
-     * @return true nếu trùng khớp vai trò
+     * @param requiredRole vai trò cần kiểm tra
+     * @return true nếu vai trò trùng khớp, ngược lại false
      */
     public synchronized boolean hasRole(String requiredRole) {
         if (!isLoggedIn() || this.role == null || requiredRole == null) {
@@ -104,23 +103,14 @@ public class SessionManager {
         return this.role.equalsIgnoreCase(requiredRole.trim());
     }
 
-    /**
-     * Kiểm tra có phải là Quản lý không.
-     */
     public boolean isManager() {
         return hasRole(ROLE_MANAGER);
     }
 
-    /**
-     * Kiểm tra có phải là Thủ thư không.
-     */
     public boolean isLibrarian() {
         return hasRole(ROLE_LIBRARIAN);
     }
 
-    /**
-     * Kiểm tra có phải là Sinh viên không.
-     */
     public boolean isStudent() {
         return hasRole(ROLE_STUDENT);
     }
@@ -150,8 +140,9 @@ public class SessionManager {
     }
 
     /**
-     * Lấy chuỗi định dạng thông tin người dùng đang đăng nhập để hiển thị trên tiêu đề giao diện Desktop.
-     * Ví dụ: "Trần Thị Mai (Thủ thư - TT0001)"
+     * Định dạng chuỗi hiển thị thông tin người dùng kèm vai trò trên giao diện.
+     * 
+     * @return chuỗi định danh người dùng và vai trò
      */
     public synchronized String getDisplayNameWithRole() {
         if (!loggedIn) {
