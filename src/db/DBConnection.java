@@ -9,37 +9,25 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 /**
- * =========================================================================
- * Kiến trúc: Closed 4-Layer Architecture - Tầng Database Access Infrastructure
- * Thiết kế Mẫu: Singleton Pattern (Mục 5.1 & Class Diagram SRS)
- * Ràng buộc kỹ thuật: JDBC thuần (PreparedStatement, Không dùng ORM/Hibernate)
- * Traceability Element: Bộ cung cấp kết nối CSDL duy nhất cho toàn bộ Repository
- * 
- * Nhiệm vụ:
- * 1. Khởi tạo và nạp MySQL JDBC Driver (mysql-connector-j-8.3.0.jar).
- * 2. Đọc cấu hình kết nối từ file db.properties (hỗ trợ nhiều cấp thư mục).
- * 3. Duy trì một kết nối duy nhất (Singleton), tự động kết nối lại nếu bị ngắt.
- * 4. Cung cấp hàm kiểm tra kết nối testConnection() trước khi khởi động giao diện.
- * =========================================================================
- * 
- * @author Người số 5 (Hạ tầng chung & CSDL)
+ * Quản lý kết nối cơ sở dữ liệu MySQL theo mẫu thiết kế Singleton.
+ * Đảm bảo khởi tạo và tái sử dụng duy nhất một kết nối JDBC trong suốt vòng đời ứng dụng.
  */
 public class DBConnection {
 
-    // 1. Biến static duy nhất lưu trữ thể hiện (instance) của lớp
+    // Thể hiện duy nhất của lớp (Singleton instance)
     private static DBConnection instance;
 
-    // 2. Đối tượng kết nối JDBC
+    // Đối tượng kết nối JDBC
     private Connection connection;
 
-    // 3. Các thông số cấu hình mặc định (fallback khi không tìm thấy file cấu hình)
+    // Cấu hình kết nối cơ sở dữ liệu mặc định
     private String driver = "com.mysql.cj.jdbc.Driver";
     private String url = "jdbc:mysql://localhost:3306/quan_li_thu_vien?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh&characterEncoding=UTF-8";
     private String user = "root";
     private String password = "";
 
     /**
-     * Constructor đặt ở chế độ private để ngăn chặn việc tạo đối tượng tùy tiện từ bên ngoài bằng từ khóa 'new'.
+     * Khởi tạo đối tượng với phạm vi private theo mẫu Singleton.
      */
     private DBConnection() {
         loadConfiguration();
@@ -47,17 +35,13 @@ public class DBConnection {
     }
 
     /**
-     * Tải cấu hình từ file db.properties.
-     * Thứ tự ưu tiên tìm kiếm:
-     * 1. Classpath (resources)
-     * 2. Thư mục hiện tại (project root)
-     * 3. Thư mục src/db/db.properties
+     * Tải thông số cấu hình kết nối từ tệp db.properties.
      */
     private void loadConfiguration() {
         Properties props = new Properties();
         boolean loaded = false;
 
-        // Thử tìm trong classpath
+        // Tìm kiếm tệp cấu hình trong classpath
         try (InputStream is = getClass().getClassLoader().getResourceAsStream("db/db.properties")) {
             if (is != null) {
                 props.load(is);
@@ -74,7 +58,7 @@ public class DBConnection {
             } catch (Exception ignored) {}
         }
 
-        // Thử tìm theo đường dẫn file vật lý
+        // Tìm kiếm tệp cấu hình theo đường dẫn tương đối trong dự án
         if (!loaded) {
             File[] files = new File[] {
                 new File("db.properties"),
@@ -98,30 +82,30 @@ public class DBConnection {
             if (props.getProperty("db.url") != null) this.url = props.getProperty("db.url").trim();
             if (props.getProperty("db.user") != null) this.user = props.getProperty("db.user").trim();
             if (props.getProperty("db.password") != null) this.password = props.getProperty("db.password").trim();
-            System.out.println("[DBConnection] Đã tải thành công cấu hình kết nối từ db.properties.");
+            System.out.println("[DBConnection] Tải cấu hình từ db.properties thành công.");
         } else {
             System.out.println("[DBConnection] Không tìm thấy db.properties, sử dụng cấu hình mặc định (root@localhost:3306).");
         }
     }
 
     /**
-     * Nạp MySQL JDBC Driver vào bộ nhớ JVM.
+     * Nạp MySQL JDBC Driver vào bộ nhớ.
      */
     private void initDriver() {
         try {
             Class.forName(driver);
-            System.out.println("[DBConnection] Đã nạp thành công MySQL JDBC Driver: " + driver);
+            System.out.println("[DBConnection] Đã nạp MySQL JDBC Driver: " + driver);
         } catch (ClassNotFoundException e) {
-            System.err.println("[DBConnection LỖI] Không tìm thấy Driver MySQL JDBC!");
-            System.err.println("-> Hướng dẫn: Đảm bảo file mysql-connector-j-8.3.0.jar đã được thêm vào Classpath / lib của dự án.");
+            System.err.println("[DBConnection][LỖI] Không tìm thấy Driver MySQL JDBC: " + driver);
+            System.err.println("[DBConnection][LỖI] Vui lòng đảm bảo mysql-connector-j đã được thêm vào Classpath / lib của dự án.");
             e.printStackTrace();
         }
     }
 
     /**
-     * Phương thức tĩnh cung cấp điểm truy cập toàn cục tới thể hiện duy nhất của lớp (Thread-Safe).
+     * Lấy thể hiện duy nhất của lớp DBConnection (Thread-Safe).
      * 
-     * @return DBConnection đối tượng duy nhất
+     * @return DBConnection đối tượng quản lý kết nối
      */
     public static synchronized DBConnection getInstance() {
         if (instance == null) {
@@ -131,22 +115,20 @@ public class DBConnection {
     }
 
     /**
-     * Lấy kết nối JDBC đang hoạt động.
-     * Nếu kết nối chưa mở hoặc đã bị đóng, tự động khởi tạo kết nối mới.
+     * Lấy đối tượng kết nối JDBC hiện thời.
+     * Tự động khởi tạo kết nối mới nếu kết nối chưa mở hoặc đã bị đóng.
      * 
-     * @return Connection đối tượng kết nối SQL
-     * @throws SQLException nếu kết nối thất bại
+     * @return Connection đối tượng kết nối cơ sở dữ liệu
+     * @throws SQLException khi xảy ra lỗi kết nối cơ sở dữ liệu
      */
     public synchronized Connection getConnection() throws SQLException {
         if (connection == null || connection.isClosed()) {
             try {
                 connection = DriverManager.getConnection(url, user, password);
-                System.out.println("[DBConnection] Mở kết nối thành công tới database: " + url.split("\\?")[0]);
+                System.out.println("[DBConnection] Kết nối thành công tới CSDL: " + url.split("\\?")[0]);
             } catch (SQLException e) {
-                System.err.println("[DBConnection LỖI] Không thể kết nối tới MySQL Server!");
-                System.err.println("-> Kiểm tra: 1. MySQL đã được khởi động chưa (XAMPP / MySQL Service)?");
-                System.err.println("            2. Tên đăng nhập và mật khẩu trong db.properties đã đúng chưa?");
-                System.err.println("            3. Database 'quan_li_thu_vien' đã được tạo qua setup_database.sql chưa?");
+                System.err.println("[DBConnection][LỖI] Không thể kết nối tới MySQL Server (" + url.split("\\?")[0] + ")");
+                System.err.println("[DBConnection][LỖI] Nguyên nhân: " + e.getMessage());
                 throw e;
             }
         }
@@ -154,10 +136,10 @@ public class DBConnection {
     }
 
     /**
-     * Kiểm tra trạng thái kết nối tới CSDL.
+     * Kiểm tra trạng thái hoạt động của kết nối cơ sở dữ liệu.
      * 
-     * @param timeoutSeconds thời gian tối đa chờ phản hồi (giây)
-     * @return true nếu kết nối hoạt động bình thường, false nếu thất bại
+     * @param timeoutSeconds thời gian chờ tối đa (giây)
+     * @return true nếu kết nối hợp lệ, false nếu thất bại
      */
     public boolean testConnection(int timeoutSeconds) {
         try {
@@ -169,14 +151,14 @@ public class DBConnection {
     }
 
     /**
-     * Đóng kết nối an toàn khi tắt ứng dụng.
+     * Đóng kết nối cơ sở dữ liệu an toàn khi ứng dụng kết thúc.
      */
     public synchronized void closeConnection() {
         if (connection != null) {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                    System.out.println("[DBConnection] Đã đóng kết nối CSDL an toàn.");
+                    System.out.println("[DBConnection] Đã đóng kết nối CSDL.");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -187,7 +169,7 @@ public class DBConnection {
     }
 
     /**
-     * Hàm main hỗ trợ kiểm tra nhanh kết nối CSDL khi cần thiết.
+     * Phương thức hỗ trợ kiểm tra nhanh trạng thái kết nối cơ sở dữ liệu độc lập.
      */
     public static void main(String[] args) {
         System.out.println("[DBConnection] Kiểm tra kết nối cơ sở dữ liệu MySQL...");
