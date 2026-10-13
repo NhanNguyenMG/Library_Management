@@ -42,7 +42,7 @@ public class BorrowDetailRepository {
             ps.setString(5, borrowDetail.getNote());
 
             if (ps.executeUpdate() != 1) {
-                throw new SQLException("Không thể lưu chi tiết phiếu mượn " + borrowDetail.getId());
+                throw new SQLException("Không thể lưu bản ghi chi tiết phiếu mượn: " + borrowDetail.getId());
             }
         }
     }

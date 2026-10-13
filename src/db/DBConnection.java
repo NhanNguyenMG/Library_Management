@@ -87,9 +87,9 @@ public class DBConnection {
             if (props.getProperty("db.url") != null) this.url = props.getProperty("db.url").trim();
             if (props.getProperty("db.user") != null) this.user = props.getProperty("db.user").trim();
             if (props.getProperty("db.password") != null) this.password = props.getProperty("db.password").trim();
-            System.out.println("[DBConnection] Tải cấu hình từ db.properties thành công.");
+            System.out.println("[INFO] [DBConnection] Đã tải thành công cấu hình kết nối từ tệp db.properties.");
         } else {
-            System.out.println("[DBConnection] Không tìm thấy db.properties, sử dụng cấu hình mặc định (root@localhost:3306).");
+            System.out.println("[WARN] [DBConnection] Không tìm thấy tệp db.properties; áp dụng cấu hình kết nối mặc định (root@localhost:3306).");
         }
     }
 
@@ -99,10 +99,10 @@ public class DBConnection {
     private void initDriver() {
         try {
             Class.forName(driver);
-            System.out.println("[DBConnection] Đã nạp MySQL JDBC Driver: " + driver);
+            System.out.println("[INFO] [DBConnection] Đã nạp thành công MySQL JDBC Driver: " + driver);
         } catch (ClassNotFoundException e) {
-            System.err.println("[DBConnection][LỖI] Không tìm thấy Driver MySQL JDBC: " + driver);
-            System.err.println("[DBConnection][LỖI] Vui lòng đảm bảo mysql-connector-j đã được thêm vào Classpath / lib của dự án.");
+            System.err.println("[ERROR] [DBConnection] Không tìm thấy trình điều khiển MySQL JDBC Driver trong classpath.");
+            System.err.println("[ERROR] [DBConnection] Vui lòng đảm bảo tệp thư viện mysql-connector-j đã được thêm vào Classpath/lib của dự án.");
             e.printStackTrace();
         }
     }
@@ -130,10 +130,10 @@ public class DBConnection {
         if (connection == null || connection.isClosed()) {
             try {
                 connection = DriverManager.getConnection(url, user, password);
-                System.out.println("[DBConnection] Kết nối thành công tới CSDL: " + url.split("\\?")[0]);
+                System.out.println("[INFO] [DBConnection] Thiết lập kết nối thành công tới cơ sở dữ liệu: " + url.split("\\?")[0]);
             } catch (SQLException e) {
-                System.err.println("[DBConnection][LỖI] Không thể kết nối tới MySQL Server (" + url.split("\\?")[0] + ")");
-                System.err.println("[DBConnection][LỖI] Nguyên nhân: " + e.getMessage());
+                System.err.println("[ERROR] [DBConnection] Không thể thiết lập kết nối tới máy chủ cơ sở dữ liệu MySQL.");
+                System.err.println("[ERROR] [DBConnection] Vui lòng kiểm tra: Dịch vụ MySQL đang hoạt động, thông tin tài khoản tại db.properties và cơ sở dữ liệu 'quan_li_thu_vien'.");
                 throw e;
             }
         }
@@ -163,7 +163,7 @@ public class DBConnection {
             try {
                 if (!connection.isClosed()) {
                     connection.close();
-                    System.out.println("[DBConnection] Đã đóng kết nối CSDL an toàn.");
+                    System.out.println("[INFO] [DBConnection] Đã đóng kết nối cơ sở dữ liệu an toàn.");
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -177,13 +177,15 @@ public class DBConnection {
      * Hàm main hỗ trợ kiểm tra nhanh kết nối CSDL khi cần thiết.
      */
     public static void main(String[] args) {
-        System.out.println("[DBConnection] Kiểm tra kết nối cơ sở dữ liệu MySQL...");
+        System.out.println("=================================================");
+        System.out.println("[DIAGNOSTIC] Kiểm tra kết nối cơ sở dữ liệu MySQL");
+        System.out.println("=================================================");
         DBConnection db = DBConnection.getInstance();
         boolean success = db.testConnection(5);
         if (success) {
-            System.out.println("[DBConnection] Kết nối cơ sở dữ liệu 'quan_li_thu_vien' thành công.");
+            System.out.println("[SUCCESS] Kết nối đến cơ sở dữ liệu thành công.");
         } else {
-            System.err.println("[DBConnection][LỖI] Kết nối thất bại. Vui lòng kiểm tra lại dịch vụ MySQL và cấu hình kết nối.");
+            System.err.println("[FAILED] Kết nối cơ sở dữ liệu thất bại. Vui lòng kiểm tra dịch vụ MySQL và thông số xác thực.");
         }
     }
 }

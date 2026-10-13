@@ -364,7 +364,7 @@ public class BorrowForm extends JFrame {
         SessionManager session = SessionManager.getInstance();
         if (!session.isLibrarian() && !session.isManager()) {
             JOptionPane.showMessageDialog(this,
-                    "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản Thủ thư hoặc Quản lý.",
+                    "Từ chối quyền truy cập: Chức năng này yêu cầu tài khoản Thủ thư hoặc Quản trị viên.",
                     "Từ chối truy cập", JOptionPane.ERROR_MESSAGE);
             SwingUtilities.invokeLater(this::dispose);
             return;
@@ -378,7 +378,7 @@ public class BorrowForm extends JFrame {
     private void onScanCardEnter() {
         String studentId = txtStudentId.getText().trim();
         if (studentId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã thẻ sinh viên!",
+            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã thẻ sinh viên.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             txtStudentId.requestFocusInWindow();
             return;
@@ -390,8 +390,8 @@ public class BorrowForm extends JFrame {
         if (isDifferentStudent && !pendingBooks.isEmpty()) {
             int option = JOptionPane.showConfirmDialog(this,
                     "Danh sách chờ mượn của sinh viên " + currentStudent.getFullName()
-                            + " sẽ bị xóa. Bạn có muốn tiếp tục?",
-                    "Xác nhận đổi sinh viên", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                            + " sẽ bị xóa. Bạn có chắc chắn muốn tiếp tục chuyển đổi?",
+                    "Xác nhận thay đổi sinh viên", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (option != JOptionPane.YES_OPTION) {
                 txtStudentId.setText(currentStudent.getStudentId());
                 return;
@@ -430,7 +430,7 @@ public class BorrowForm extends JFrame {
      */
     private void onScanBookEnter() {
         if (currentStudent == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét thẻ sinh viên hợp lệ trước khi quét sách!",
+            JOptionPane.showMessageDialog(this, "Vui lòng quét và xác thực thẻ sinh viên hợp lệ trước khi thao tác quét sách.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             txtStudentId.requestFocusInWindow();
             return;
@@ -438,7 +438,7 @@ public class BorrowForm extends JFrame {
 
         String bookId = txtBookId.getText().trim();
         if (bookId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã sách!",
+            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã đầu sách.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             txtBookId.requestFocusInWindow();
             return;
@@ -490,24 +490,24 @@ public class BorrowForm extends JFrame {
      */
     private void btnConfirmActionPerformed(ActionEvent event) {
         if (currentStudent == null || pendingBooks.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét thẻ sinh viên và ít nhất một cuốn sách!",
+            JOptionPane.showMessageDialog(this, "Vui lòng xác thực thẻ sinh viên và chọn ít nhất một đầu sách trước khi lập phiếu.",
                     "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         // Xác nhận trước khi ghi vào CSDL
         StringBuilder confirmMessage = new StringBuilder();
-        confirmMessage.append("Tạo phiếu mượn cho sinh viên: ")
-                .append(currentStudent.getFullName())
-                .append(" (").append(currentStudent.getStudentId()).append(")\n\n")
-                .append("Danh sách ").append(pendingBooks.size()).append(" cuốn:\n");
+        confirmMessage.append("Xác nhận lập phiếu mượn tài liệu:\n")
+                .append("  • Sinh viên: ").append(currentStudent.getFullName())
+                .append(" (MSSV: ").append(currentStudent.getStudentId()).append(")\n\n")
+                .append("Danh sách ").append(pendingBooks.size()).append(" tài liệu:\n");
         for (Book book : pendingBooks) {
-            confirmMessage.append("  • ").append(book.getTitle()).append("\n");
+            confirmMessage.append("  • ").append(book.getTitle()).append(" [").append(book.getBookId()).append("]\n");
         }
-        confirmMessage.append("\nBạn có chắc chắn muốn hoàn tất mượn?");
+        confirmMessage.append("\nBạn có chắc chắn muốn hoàn tất giao dịch lập phiếu mượn?");
 
         int option = JOptionPane.showConfirmDialog(this, confirmMessage.toString(),
-                "Xác nhận mượn sách", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                "Xác nhận giao dịch mượn sách", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (option != JOptionPane.YES_OPTION) {
             return;
         }
@@ -537,8 +537,8 @@ public class BorrowForm extends JFrame {
     private void btnCancelActionPerformed(ActionEvent event) {
         if (!pendingBooks.isEmpty()) {
             int option = JOptionPane.showConfirmDialog(this,
-                    "Danh sách chờ mượn chưa được lưu. Bạn có chắc muốn hủy phiên này?",
-                    "Xác nhận hủy", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                    "Danh sách tài liệu chờ mượn chưa được lưu trữ. Bạn có chắc chắn muốn hủy phiên làm việc này?",
+                    "Xác nhận hủy phiên", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
             if (option != JOptionPane.YES_OPTION) {
                 return;
             }
@@ -552,11 +552,11 @@ public class BorrowForm extends JFrame {
      * Hiển thị thông báo thành công.
      */
     private void showSuccessMessage(BorrowResult result) {
-        String message = "TẠO PHIẾU MƯỢN THÀNH CÔNG!\n\n"
+        String message = "LẬP PHIẾU MƯỢN THÀNH CÔNG\n\n"
                 + "Mã phiếu mượn: " + result.getSlipId() + "\n"
-                + "Sinh viên: " + currentStudent.getFullName() + " (" + currentStudent.getStudentId() + ")\n"
-                + "Số sách mượn: " + pendingBooks.size() + " cuốn\n\n"
-                + "Kho sách đã được cập nhật tự động.";
+                + "Sinh viên: " + currentStudent.getFullName() + " (MSSV: " + currentStudent.getStudentId() + ")\n"
+                + "Số lượng tài liệu: " + pendingBooks.size() + " cuốn\n\n"
+                + "Dữ liệu tồn kho và hồ sơ mượn đã được cập nhật thành công vào hệ thống.";
         JOptionPane.showMessageDialog(this, message, "Kết quả mượn sách", JOptionPane.INFORMATION_MESSAGE);
     }
 
@@ -564,7 +564,7 @@ public class BorrowForm extends JFrame {
      * Hiển thị thông báo lỗi.
      */
     private void showErrorMessage(String message) {
-        JOptionPane.showMessageDialog(this, message, "Lỗi mượn sách", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "Lỗi lập phiếu mượn", JOptionPane.ERROR_MESSAGE);
     }
 
     // Hàm hỗ trợ giao diện

@@ -312,7 +312,7 @@ public class SearchBookForm extends JFrame {
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(
                     this,
-                    "Không thể tải danh sách sách từ cơ sở dữ liệu.\nChi tiết: " + e.getMessage(),
+                    "Không thể truy vấn danh mục tài liệu từ cơ sở dữ liệu.\nChi tiết: " + e.getMessage(),
                     "Lỗi cơ sở dữ liệu",
                     JOptionPane.ERROR_MESSAGE
             );
@@ -374,8 +374,8 @@ public class SearchBookForm extends JFrame {
 
                 JOptionPane.showMessageDialog(
                         this,
-                        "Không tìm thấy sách phù hợp với từ khóa: \""
-                                + tuKhoa + "\"",
+                        "Không tìm thấy tài liệu phù hợp với từ khóa: \""
+                                + tuKhoa + "\".",
                         "Kết quả tìm kiếm",
                         JOptionPane.INFORMATION_MESSAGE
                 );
@@ -389,9 +389,8 @@ public class SearchBookForm extends JFrame {
 
             JOptionPane.showMessageDialog(
                     this,
-                    "Không thể thực hiện tìm kiếm.\n"
-                            + "Vui lòng kiểm tra kết nối cơ sở dữ liệu.\n\n"
-                            + "Chi tiết: "
+                    "Không thể thực hiện tra cứu tài liệu do lỗi kết nối cơ sở dữ liệu.\n\n"
+                            + "Chi tiết lỗi: "
                             + e.getMessage(),
                     "Lỗi cơ sở dữ liệu",
                     JOptionPane.ERROR_MESSAGE
@@ -647,15 +646,15 @@ public class SearchBookForm extends JFrame {
             DebtController debtController = new DebtController();
             Student student = debtController.layThongTinNoSinhVien(session.getUserId());
             if (student == null || student.getDebtAmount() <= 0) {
-                JOptionPane.showMessageDialog(this, "Bạn không có nợ tiền phạt cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Tài khoản hiện không có khoản nợ tiền phạt nào cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
 
             double debt = student.getDebtAmount();
             int choice = JOptionPane.showConfirmDialog(
                     this,
-                    "Xác nhận thanh toán toàn bộ " + String.format("%,.0f VNĐ", debt) + " tiền phạt qua cổng trực tuyến?",
-                    "Xác nhận thanh toán online",
+                    "Xác nhận thanh toán toàn bộ " + String.format("%,.0f VNĐ", debt) + " nợ tiền phạt qua cổng trực tuyến?",
+                    "Xác nhận thanh toán trực tuyến",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE
             );
@@ -671,9 +670,9 @@ public class SearchBookForm extends JFrame {
                 if (result.isSuccess()) {
                     JOptionPane.showMessageDialog(
                             this,
-                            "Thanh toán tiền phạt trực tuyến thành công!\n"
-                                    + "Số nợ hiện tại của bạn: 0 VNĐ.\n"
-                                    + "Tài khoản hiện đã đủ điều kiện mượn sách tại thư viện.",
+                            "Thanh toán nợ tiền phạt trực tuyến thành công.\n"
+                                    + "Số tiền nợ hiện tại: 0 VNĐ.\n"
+                                    + "Tài khoản sinh viên đã đủ điều kiện thực hiện các giao dịch mượn sách.",
                             "Thanh toán thành công",
                             JOptionPane.INFORMATION_MESSAGE
                     );
@@ -681,7 +680,7 @@ public class SearchBookForm extends JFrame {
                 } else {
                     JOptionPane.showMessageDialog(
                             this,
-                            "Lỗi khi thực hiện thanh toán: " + result.getMessage(),
+                            "Lỗi trong quá trình thực hiện thanh toán: " + result.getMessage(),
                             "Lỗi",
                             JOptionPane.ERROR_MESSAGE
                     );
@@ -695,8 +694,8 @@ public class SearchBookForm extends JFrame {
     private void xuLyDangXuat() {
         int choice = JOptionPane.showConfirmDialog(
                 this,
-                "Bạn có chắc chắn muốn đăng xuất?",
-                "Đăng xuất",
+                "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?",
+                "Xác nhận đăng xuất",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );

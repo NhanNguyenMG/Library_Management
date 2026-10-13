@@ -154,7 +154,7 @@ public class BookRepository {
             preparedStatement.setInt(3, quantity);
 
             if (preparedStatement.executeUpdate() != 1) {
-                throw new SQLException("Đầu sách " + bookId + " không tồn tại hoặc không đủ số lượng để mượn.");
+                throw new SQLException("Đầu sách " + bookId + " không tồn tại hoặc không đủ số lượng khả dụng để mượn.");
             }
         }
     }

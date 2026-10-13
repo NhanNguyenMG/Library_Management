@@ -27,7 +27,7 @@ public class MainApp {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            System.err.println("[MainApp] Không thể tải System Look & Feel, sử dụng giao diện mặc định.");
+            System.err.println("[WARN] [MainApp] Không thể tải giao diện hệ thống (System Look & Feel); sử dụng giao diện mặc định.");
         }
     }
 
@@ -35,30 +35,30 @@ public class MainApp {
      * Kiểm tra kết nối CSDL và khởi động form tương ứng.
      */
     private static void checkDatabaseAndLaunch() {
-        System.out.println("-----------------------------------------------------------------");
-        System.out.println("[MainApp] Khởi động: " + APP_TITLE);
-        System.out.println("[MainApp] Phiên bản: " + APP_VERSION);
-        System.out.println("-----------------------------------------------------------------");
-        System.out.println("[MainApp] Kiểm tra kết nối tới MySQL Server...");
+        System.out.println("=================================================================");
+        System.out.println(" KHỞI ĐỘNG HỆ THỐNG: " + APP_TITLE);
+        System.out.println(" PHIÊN BẢN: " + APP_VERSION);
+        System.out.println("=================================================================");
+        System.out.println("[INFO] [MainApp] Đang kiểm tra kết nối tới máy chủ cơ sở dữ liệu MySQL...");
 
         boolean isDbConnected = DBConnection.getInstance().testConnection(4);
 
         if (isDbConnected) {
-            System.out.println("[MainApp] Kết nối CSDL thành công. Đang mở màn hình Đăng nhập...");
+            System.out.println("[INFO] [MainApp] Kết nối cơ sở dữ liệu thành công. Đang tải màn hình Đăng nhập...");
             openLoginForm();
         } else {
-            System.err.println("[MainApp][CẢNH BÁO] Không thể kết nối tới cơ sở dữ liệu MySQL.");
+            System.err.println("[WARN] [MainApp] Không thể thiết lập kết nối tới cơ sở dữ liệu MySQL.");
             
             String errorMessage = "<html><body style='width: 380px; font-family: sans-serif;'>"
-                    + "<h3 style='color: #c0392b;'>Không thể kết nối Cơ sở dữ liệu MySQL!</h3>"
-                    + "<p>Hệ thống không thể kết nối tới database <b>quan_li_thu_vien</b>.</p>"
-                    + "<p><b>Vui lòng kiểm tra lại các bước sau:</b></p>"
+                    + "<h3 style='color: #c0392b;'>Không thể kết nối Cơ sở dữ liệu MySQL</h3>"
+                    + "<p>Hệ thống không thể thiết lập kết nối tới cơ sở dữ liệu <b>quan_li_thu_vien</b>.</p>"
+                    + "<p><b>Vui lòng kiểm tra lại các cấu hình sau:</b></p>"
                     + "<ol>"
-                    + "<li>Dịch vụ MySQL hoặc XAMPP đã được BẬT chưa?</li>"
-                    + "<li>Đã chạy file cài đặt CSDL <code>setup_database.sql</code> chưa?</li>"
-                    + "<li>Kiểm tra cấu hình tài khoản trong <code>db.properties</code>.</li>"
+                    + "<li>Dịch vụ máy chủ MySQL (XAMPP / MySQL Service) đã được kích hoạt chưa?</li>"
+                    + "<li>Cơ sở dữ liệu đã được tạo thông qua tệp kịch bản <code>setup_database.sql</code> chưa?</li>"
+                    + "<li>Kiểm tra tính chính xác của thông tin tài khoản trong <code>db.properties</code>.</li>"
                     + "</ol>"
-                    + "<p>Bạn có muốn tiếp tục khởi chạy ở chế độ xem trước không?</p>"
+                    + "<p>Bạn có muốn tiếp tục khởi chạy ứng dụng ở chế độ ngoại tuyến/xem trước không?</p>"
                     + "</body></html>";
 
             int option = JOptionPane.showConfirmDialog(
@@ -72,7 +72,7 @@ public class MainApp {
             if (option == JOptionPane.YES_OPTION) {
                 openLoginForm();
             } else {
-                System.out.println("[MainApp] Đã hủy khởi động ứng dụng.");
+                System.out.println("[INFO] [MainApp] Người dùng đã hủy tiến trình khởi động ứng dụng.");
                 System.exit(0);
             }
         }
@@ -89,9 +89,9 @@ public class MainApp {
             loginFrame.setVisible(true);
             return;
         } catch (ClassNotFoundException e) {
-            System.out.println("[MainApp] ui.LoginForm chưa sẵn sàng, hiển thị màn hình kiểm tra hệ thống...");
+            System.out.println("[INFO] [MainApp] Giao diện LoginForm chưa sẵn sàng; chuyển hướng sang màn hình trạng thái hệ thống.");
         } catch (Exception e) {
-            System.err.println("[MainApp][LỖI] Lỗi khởi chạy LoginForm: " + e.getMessage());
+            System.err.println("[ERROR] [MainApp] Lỗi khởi chạy giao diện đăng nhập: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -133,29 +133,29 @@ public class MainApp {
         statusArea.setBorder(BorderFactory.createLineBorder(new Color(220, 224, 230)));
 
         StringBuilder sb = new StringBuilder();
-        sb.append("KIỂM TRA TRẠNG THÁI HỆ THỐNG\n\n");
+        sb.append("BÁO CÁO TRẠNG THÁI HỆ THỐNG\n\n");
         
         boolean dbStatus = DBConnection.getInstance().testConnection(2);
-        sb.append("1. TRẠNG THÁI KẾT NỐI CSDL MYSQL:\n");
+        sb.append("1. TRẠNG THÁI KẾT NỐI CƠ SỞ DỮ LIỆU MYSQL:\n");
         if (dbStatus) {
-            sb.append("   -> KẾT NỐI: [ THÀNH CÔNG ]\n");
+            sb.append("   -> Trạng thái: [ KẾT NỐI THÀNH CÔNG ]\n");
             sb.append("   -> Cơ sở dữ liệu: quan_li_thu_vien\n");
             sb.append("   -> Driver: com.mysql.cj.jdbc.Driver (MySQL Connector/J 8.3.0)\n\n");
         } else {
-            sb.append("   -> KẾT NỐI: [ THẤT BẠI - CHƯA BẬT MYSQL HOẶC SAI MẬT KHẨU ]\n");
-            sb.append("   -> Khắc phục: Khởi động XAMPP/MySQL và chạy file: Library_Management/src/db/setup_database.sql\n\n");
+            sb.append("   -> Trạng thái: [ KẾT NỐI THẤT BẠI - DỊCH VỤ CHƯA SẴN SÀNG HOẶC SAI THÔNG TIN XÁC THỰC ]\n");
+            sb.append("   -> Hướng khắc phục: Khởi động dịch vụ MySQL và thực thi tệp cấu hình CSDL: setup_database.sql\n\n");
         }
 
         SessionManager session = SessionManager.getInstance();
-        sb.append("2. TRẠNG THÁI PHIÊN ĐĂNG NHẬP (SESSION MANAGER):\n");
-        sb.append("   -> Trạng thái đăng nhập: ").append(session.isLoggedIn() ? "Đã đăng nhập" : "Chưa đăng nhập (Khách)").append("\n");
+        sb.append("2. TRẠNG THÁI PHIÊN LÀM VIỆC (SESSION MANAGER):\n");
+        sb.append("   -> Trạng thái xác thực: ").append(session.isLoggedIn() ? "Đã đăng nhập" : "Chưa xác thực (Khách)").append("\n");
         sb.append("   -> Người dùng hiện tại: ").append(session.getDisplayNameWithRole()).append("\n\n");
 
-        sb.append("3. DANH SÁCH CHỨC NĂNG HỆ THỐNG:\n");
-        sb.append("   -> Đăng nhập và phân quyền người dùng\n");
-        sb.append("   -> Tra cứu thông tin sách\n");
-        sb.append("   -> Lập phiếu mượn sách\n");
-        sb.append("   -> Trả sách và xử lý phí phạt\n");
+        sb.append("3. DANH MỤC PHÂN HỆ CHỨC NĂNG HỆ THỐNG:\n");
+        sb.append("   -> Xác thực tài khoản và phân quyền truy cập\n");
+        sb.append("   -> Tra cứu thông tin danh mục sách\n");
+        sb.append("   -> Lập và quản lý phiếu mượn tài liệu\n");
+        sb.append("   -> Hoàn trả tài liệu và xử lý phí phạt vi phạm\n");
 
         statusArea.setText(sb.toString());
         mainPanel.add(new JScrollPane(statusArea), BorderLayout.CENTER);
@@ -167,16 +167,16 @@ public class MainApp {
         testDbBtn.addActionListener(e -> {
             boolean test = DBConnection.getInstance().testConnection(3);
             if (test) {
-                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thất bại. Vui lòng kiểm tra db.properties!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thất bại. Vui lòng kiểm tra lại dịch vụ và tệp db.properties.", "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         JButton simulateLoginBtn = new JButton("Giả lập Đăng nhập Thủ thư");
         simulateLoginBtn.addActionListener(e -> {
             session.login("thuthu01", SessionManager.ROLE_LIBRARIAN, "TT0001", "Trần Thị Mai", "thuthu01@thuvien.edu.vn");
-            JOptionPane.showMessageDialog(frame, "Đã giả lập phiên đăng nhập:\n" + session.getDisplayNameWithRole(), "SessionManager", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(frame, "Đã thiết lập phiên đăng nhập thử nghiệm:\n" + session.getDisplayNameWithRole(), "SessionManager", JOptionPane.INFORMATION_MESSAGE);
         });
 
         JButton closeBtn = new JButton("Thoát");

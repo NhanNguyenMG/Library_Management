@@ -36,7 +36,7 @@ public class DebtService {
         }
         Student student = studentRepo.findByStudentId(studentId.trim());
         if (student == null) {
-            throw new Exception("Không tìm thấy sinh viên với mã: " + studentId);
+            throw new Exception("Không tìm thấy thông tin sinh viên với mã: " + studentId);
         }
         return student;
     }
@@ -62,7 +62,7 @@ public class DebtService {
      */
     public DebtPaymentResult payDebt(String studentId, double amountToPay, String paymentMethod, String librarianId) {
         if (studentId == null || studentId.trim().isEmpty()) {
-            return new DebtPaymentResult(false, "Mã sinh viên không được để trống.", studentId, 0, 0);
+            return new DebtPaymentResult(false, "Mã thẻ sinh viên không được để trống.", studentId, 0, 0);
         }
         if (amountToPay <= 0) {
             return new DebtPaymentResult(false, "Số tiền thanh toán phải lớn hơn 0 VNĐ.", studentId, 0, 0);
@@ -75,12 +75,12 @@ public class DebtService {
 
             Student student = studentRepo.findByStudentId(studentId.trim());
             if (student == null) {
-                return new DebtPaymentResult(false, "Không tìm thấy thông tin sinh viên " + studentId, studentId, 0, 0);
+                return new DebtPaymentResult(false, "Không tìm thấy thông tin sinh viên có mã: " + studentId, studentId, 0, 0);
             }
 
             double currentDebt = student.getDebtAmount();
             if (currentDebt <= 0) {
-                return new DebtPaymentResult(false, "Sinh viên " + student.getFullName() + " hiện không có nợ tiền phạt.", studentId, 0, 0);
+                return new DebtPaymentResult(false, "Sinh viên " + student.getFullName() + " hiện không có nợ tiền phạt cần thanh toán.", studentId, 0, 0);
             }
 
             // Số tiền thực thu không được vượt quá số nợ hiện tại
@@ -118,9 +118,9 @@ public class DebtService {
             conn.commit();
 
             double remainingDebt = Math.max(0, currentDebt - actualPayAmount);
-            String successMsg = String.format("Thanh toán nợ thành công cho sinh viên %s (%s)!\n"
-                    + "Đã thu: %,.0f VNĐ (Phương thức: %s).\n"
-                    + "Số nợ còn lại: %,.0f VNĐ.",
+            String successMsg = String.format("Thanh toán tiền phạt thành công cho sinh viên: %s (Mã số: %s).\n"
+                    + "Số tiền đã thu: %,.0f VNĐ (Phương thức: %s).\n"
+                    + "Số tiền nợ còn lại: %,.0f VNĐ.",
                     student.getFullName(), studentId, actualPayAmount, paymentMethod, remainingDebt);
 
             return new DebtPaymentResult(true, successMsg, studentId, actualPayAmount, remainingDebt);
@@ -133,7 +133,7 @@ public class DebtService {
                     ex.printStackTrace();
                 }
             }
-            return new DebtPaymentResult(false, "Lỗi cơ sở dữ liệu khi thanh toán nợ: " + e.getMessage(), studentId, 0, 0);
+            return new DebtPaymentResult(false, "Lỗi cơ sở dữ liệu trong quá trình thanh toán nợ: " + e.getMessage(), studentId, 0, 0);
 
         } catch (Exception e) {
             if (conn != null) {
@@ -143,7 +143,7 @@ public class DebtService {
                     ex.printStackTrace();
                 }
             }
-            return new DebtPaymentResult(false, "Sự cố hệ thống: " + e.getMessage(), studentId, 0, 0);
+            return new DebtPaymentResult(false, "Lỗi hệ thống trong quá trình xử lý thanh toán: " + e.getMessage(), studentId, 0, 0);
 
         } finally {
             if (conn != null) {

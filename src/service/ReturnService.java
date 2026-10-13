@@ -212,13 +212,13 @@ public class ReturnService {
     /**
      * Xác nhận trả sách với giao dịch Database Transaction.
      * Hỗ trợ trả sách từng phần (Partial Return), quét sách từ nhiều phiếu khác nhau,
-     * tính phạt riêng theo từng cuốn sách và tuỳ chọn thu tiền mặt ngay hoặc ghi nợ (Điểm chạm 2).
+     * tính phạt riêng theo từng cuốn sách và phương thức xử lý phạt (thu trực tiếp hoặc ghi nhận nợ).
      *
      * @param scannedItems danh sách các cuốn sách đã quét
      * @param slipId mã phiếu mượn mặc định (nếu item không chỉ định)
      * @param student đối tượng sinh viên
      * @param librarianId mã thủ thư đang thực hiện
-     * @param isPaidNow true nếu đã thu tiền mặt tại quầy (Điểm chạm 2), false nếu ghi nợ để trả sau
+     * @param isPaidNow true nếu thu tiền mặt trực tiếp tại quầy, false nếu ghi nợ vào tài khoản để trả sau
      * @return ReturnResult kết quả trả sách
      */
     public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
@@ -228,7 +228,7 @@ public class ReturnService {
                                        boolean isPaidNow) {
 
         if (scannedItems == null || scannedItems.isEmpty()) {
-            return new ReturnResult(false, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận trả.", slipId, 0, 0);
+            return new ReturnResult(false, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận trả sách.", slipId, 0, 0);
         }
 
         List<BorrowingItemDTO> validScanned = scannedItems.stream()
@@ -236,7 +236,7 @@ public class ReturnService {
                 .toList();
 
         if (validScanned.isEmpty()) {
-            return new ReturnResult(false, "Không có cuốn sách nào ở trạng thái 'Đã quét'.", slipId, 0, 0);
+            return new ReturnResult(false, "Không có tài liệu nào trong danh sách ở trạng thái 'Đã quét'.", slipId, 0, 0);
         }
 
         Connection conn = null;
@@ -268,7 +268,7 @@ public class ReturnService {
                     if (!"Mất sách".equalsIgnoreCase(item.getPhysicalCondition())) {
                         boolean stockUpdated = bookRepo.increaseStock(item.getBookId(), item.getQuantity(), conn);
                         if (!stockUpdated) {
-                            throw new SQLException("Lỗi cập nhật tồn kho cho đầu sách: " + item.getBookId());
+                            throw new SQLException("Lỗi cập nhật số lượng tồn kho cho đầu sách: " + item.getBookId());
                         }
                     }
                     totalReturnedCount += item.getQuantity();
@@ -297,7 +297,7 @@ public class ReturnService {
             double totalFine = calculateTotalFineForItems(validScanned, student, now);
             long maxLateDays = calculateMaxLateDays(validScanned, now);
 
-            // 6. Điểm chạm 2: Nếu chưa thu tiền mặt ngay (Ghi nợ) -> Cộng nợ vào sinh_vien.so_tien_no
+            // 6. Xử lý phí phạt: Nếu chưa thu tiền mặt ngay (ghi nợ) -> Cộng nợ vào sinh_vien.so_tien_no
             // Nếu đã thu tiền mặt ngay -> KHÔNG cộng nợ vào sinh_vien
             if (totalFine > 0 && !isPaidNow) {
                 studentRepo.updateDebtAmount(student.getStudentId(), totalFine, conn);
@@ -310,12 +310,12 @@ public class ReturnService {
             conn.commit();
 
             String slipsSummary = String.join(", ", itemsBySlip.keySet());
-            String successMsg = "Trả sách thành công!";
+            String successMsg = "Xác nhận hoàn tất thủ tục trả sách thành công.";
             if (totalFine > 0) {
                 if (isPaidNow) {
-                    successMsg += String.format(" Đã thu tiền mặt: %,.0f VNĐ (Trễ tối đa %d ngày).", totalFine, maxLateDays);
+                    successMsg += String.format(" Đã thu tiền mặt tại quầy: %,.0f VNĐ (Số ngày quá hạn tối đa: %d ngày).", totalFine, maxLateDays);
                 } else {
-                    successMsg += String.format(" Đã ghi nợ vào tài khoản sinh viên: %,.0f VNĐ (Trễ tối đa %d ngày).", totalFine, maxLateDays);
+                    successMsg += String.format(" Đã ghi nợ vào tài khoản sinh viên: %,.0f VNĐ (Số ngày quá hạn tối đa: %d ngày).", totalFine, maxLateDays);
                 }
             }
 
@@ -330,7 +330,7 @@ public class ReturnService {
                     ex.printStackTrace();
                 }
             }
-            return new ReturnResult(false, "Mất kết nối CSDL lúc lưu. Phiếu mượn chưa đóng. Chi tiết: " + e.getMessage(), slipId, 0, 0);
+            return new ReturnResult(false, "Lỗi cơ sở dữ liệu trong quá trình lưu dữ liệu trả sách. Giao dịch đã được khôi phục nguyên trạng. Chi tiết: " + e.getMessage(), slipId, 0, 0);
 
         } catch (Exception e) {
             if (conn != null) {
@@ -340,7 +340,7 @@ public class ReturnService {
                     ex.printStackTrace();
                 }
             }
-            return new ReturnResult(false, "Hệ thống gặp sự cố: " + e.getMessage(), slipId, 0, 0);
+            return new ReturnResult(false, "Lỗi hệ thống trong quá trình xử lý trả sách: " + e.getMessage(), slipId, 0, 0);
 
         } finally {
             if (conn != null) {

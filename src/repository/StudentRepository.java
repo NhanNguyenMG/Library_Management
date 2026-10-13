@@ -136,7 +136,7 @@ public class StudentRepository {
             ps.setInt(1, borrowedCount);
             ps.setString(2, studentId);
             if (ps.executeUpdate() != 1) {
-                throw new SQLException("Không tìm thấy sinh viên " + studentId + " để cập nhật số sách đang mượn.");
+                throw new SQLException("Không tìm thấy thông tin sinh viên " + studentId + " để cập nhật số sách đang mượn.");
             }
         }
     }

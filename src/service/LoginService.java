@@ -15,17 +15,17 @@ public class LoginService {
 
         // Kiểm tra xem tài khoản có tồn tại không
         if (account == null) {
-            throw new Exception("Tài khoản không tồn tại.");
+            throw new Exception("Tài khoản không tồn tại trong hệ thống.");
         }
 
         // Kiểm tra mật khẩu
         if (!account.getPassword().equals(password)) {
-            throw new Exception("Mật khẩu không chính xác.");
+            throw new Exception("Mật khẩu xác thực không chính xác.");
         }
 
         // Kiểm tra trạng thái tài khoản
         if ("LOCKED".equalsIgnoreCase(account.getStatus()) || "INACTIVE".equalsIgnoreCase(account.getStatus())) {
-            throw new Exception("Tài khoản đã bị khóa hoặc không hoạt động.");
+            throw new Exception("Tài khoản đã bị khóa hoặc ngừng hoạt động.");
         }
 
         // Tích hợp với SessionManager để lưu thông tin phiên làm việc

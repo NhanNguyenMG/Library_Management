@@ -539,7 +539,7 @@ public class DashboardForm extends JFrame {
             DebtController debtController = new DebtController();
             return debtController.layThongTinNoSinhVien(studentId.trim());
         } catch (Exception e) {
-            System.err.println("[DashboardForm] Lỗi tải dữ liệu sinh viên: " + e.getMessage());
+            System.err.println("[ERROR] [DashboardForm] Lỗi tải dữ liệu thông tin sinh viên: " + e.getMessage());
             return null;
         }
     }
@@ -548,14 +548,14 @@ public class DashboardForm extends JFrame {
         if (student == null) return;
         double debt = student.getDebtAmount();
         if (debt <= 0) {
-            JOptionPane.showMessageDialog(this, "Bạn không có nợ tiền phạt cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Tài khoản hiện không có khoản nợ tiền phạt nào cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
 
         int choice = JOptionPane.showConfirmDialog(
                 this,
-                "Xác nhận thanh toán toàn bộ " + String.format("%,.0f VNĐ", debt) + " tiền phạt qua cổng trực tuyến?",
-                "Xác nhận thanh toán online",
+                "Xác nhận thanh toán toàn bộ " + String.format("%,.0f VNĐ", debt) + " nợ tiền phạt qua cổng trực tuyến?",
+                "Xác nhận thanh toán trực tuyến",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.QUESTION_MESSAGE
         );
@@ -572,9 +572,9 @@ public class DashboardForm extends JFrame {
             if (result.isSuccess()) {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Thanh toán tiền phạt trực tuyến thành công!\n"
-                                + "Số nợ hiện tại của bạn: 0 VNĐ.\n"
-                                + "Tài khoản hiện đã đủ điều kiện mượn sách tại thư viện.",
+                        "Thanh toán nợ tiền phạt trực tuyến thành công.\n"
+                                + "Số tiền nợ hiện tại: 0 VNĐ.\n"
+                                + "Tài khoản sinh viên đã đủ điều kiện thực hiện các giao dịch mượn sách.",
                         "Thanh toán thành công",
                         JOptionPane.INFORMATION_MESSAGE
                 );
@@ -582,7 +582,7 @@ public class DashboardForm extends JFrame {
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Lỗi khi thực hiện thanh toán: " + result.getMessage(),
+                        "Lỗi trong quá trình thực hiện thanh toán: " + result.getMessage(),
                         "Lỗi",
                         JOptionPane.ERROR_MESSAGE
                 );

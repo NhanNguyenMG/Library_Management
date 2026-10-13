@@ -46,7 +46,7 @@ public class BorrowController {
         // Kiểm tra quyền hạn trước khi lập phiếu
         SessionManager session = SessionManager.getInstance();
         if (!session.isLibrarian() && !session.isManager()) {
-            return new BorrowResult(false, "Vui lòng đăng nhập bằng tài khoản Thủ thư hoặc Quản lý để tạo phiếu mượn");
+            return new BorrowResult(false, "Yêu cầu quyền hạn: Vui lòng đăng nhập bằng tài khoản Thủ thư hoặc Quản lý để lập phiếu mượn.");
         }
 
         BorrowSlip borrowSlip = new BorrowSlip();

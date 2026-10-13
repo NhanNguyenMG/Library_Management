@@ -25,14 +25,14 @@ public class BorrowService {
     public static final int MAX_BORROW_DAYS = 14;           // 14 ngày mượn tối đa
     public static final int QUANTITY_PER_BOOK = 1;          // Mỗi đầu sách 1 cuốn / phiếu
 
-    // Thông báo hiển thị
-    private static final String MSG_INVALID_CARD = "Thẻ không hợp lệ";
-    private static final String MSG_OVER_LIMIT = "Vượt quá giới hạn mượn";
-    private static final String MSG_NEAR_LIMIT = "Sắp đạt giới hạn mượn";
-    private static final String MSG_OUT_OF_STOCK = "Sách đã hết";
-    private static final String MSG_DUPLICATE_BOOK = "Đầu sách đã có trong danh sách chờ mượn";
-    private static final String MSG_EMPTY_LIST = "Danh sách sách chờ mượn đang trống";
-    private static final String MSG_SYSTEM_ERROR = "Không xác định được, lỗi hệ thống";
+    // Thông báo quy chuẩn hệ thống
+    private static final String MSG_INVALID_CARD = "Thẻ sinh viên không hợp lệ hoặc đã bị khóa trong hệ thống";
+    private static final String MSG_OVER_LIMIT = "Số lượng sách mượn vượt quá giới hạn quy định (tối đa 5 cuốn)";
+    private static final String MSG_NEAR_LIMIT = "Cảnh báo: Sinh viên sắp đạt giới hạn mượn tối đa cho phép (4/5 cuốn)";
+    private static final String MSG_OUT_OF_STOCK = "Đầu sách hiện tại đã hết trong kho lưu trữ";
+    private static final String MSG_DUPLICATE_BOOK = "Đầu sách đã tồn tại trong danh sách chờ mượn";
+    private static final String MSG_EMPTY_LIST = "Danh sách tài liệu yêu cầu mượn hiện đang trống";
+    private static final String MSG_SYSTEM_ERROR = "Đã xảy ra lỗi hệ thống trong quá trình xử lý dữ liệu";
 
     private final StudentRepository studentRepository = new StudentRepository();
     private final BookRepository bookRepository = new BookRepository();
@@ -64,12 +64,12 @@ public class BorrowService {
 
             // Kiểm tra nợ phạt chưa thanh toán
             if (student.getDebtAmount() > 0) {
-                return new BorrowResult(false, "Sinh viên còn nợ phạt " + formatMoney(student.getDebtAmount())
-                        + ". Vui lòng thanh toán nợ trước khi mượn sách.");
+                return new BorrowResult(false, "Sinh viên còn nợ tiền phạt " + formatMoney(student.getDebtAmount())
+                        + ". Vui lòng hoàn tất thanh toán trước khi mượn sách.");
             }
 
             // Đủ điều kiện, cảnh báo nếu chỉ còn 1 suất mượn
-            BorrowResult result = new BorrowResult(true, "Đủ điều kiện mượn sách");
+            BorrowResult result = new BorrowResult(true, "Tài khoản sinh viên đủ điều kiện mượn sách");
             result.setStudent(student);
             if (student.getBorrowedCount() == MAX_BOOKS_ALLOWED - 1) {
                 result.setWarning(MSG_NEAR_LIMIT);
@@ -91,7 +91,7 @@ public class BorrowService {
      */
     public BorrowResult checkBookAvailability(String studentId, String bookId, List<String> pendingBookIds) {
         if (bookId == null || bookId.trim().isEmpty()) {
-            return new BorrowResult(false, "Mã sách không được để trống");
+            return new BorrowResult(false, "Mã đầu sách không được để trống");
         }
 
         String scannedBookId = bookId.trim();
@@ -102,7 +102,7 @@ public class BorrowService {
         try {
             Book book = bookRepository.findById(scannedBookId);
             if (book == null) {
-                return new BorrowResult(false, "Không tìm thấy đầu sách " + scannedBookId);
+                return new BorrowResult(false, "Không tìm thấy đầu sách với mã: " + scannedBookId);
             }
 
             // Kiểm tra tồn kho đầu sách
@@ -120,7 +120,7 @@ public class BorrowService {
                 return new BorrowResult(false, MSG_OVER_LIMIT);
             }
 
-            BorrowResult result = new BorrowResult(true, "Đã thêm sách vào danh sách chờ mượn");
+            BorrowResult result = new BorrowResult(true, "Đã thêm đầu sách vào danh sách chờ mượn");
             result.setBook(book);
             return result;
 
@@ -209,7 +209,7 @@ public class BorrowService {
             conn.commit(); // Cam kết lưu vào DB
 
             // Thông báo kết quả tạo phiếu thành công
-            BorrowResult result = new BorrowResult(true, "Tạo phiếu mượn " + slipId + " thành công!");
+            BorrowResult result = new BorrowResult(true, "Tạo phiếu mượn " + slipId + " thành công.");
             result.setSlipId(slipId);
             result.setStudent(student);
             return result;
@@ -218,7 +218,7 @@ public class BorrowService {
             if (conn != null) {
                 try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); } // Lỗi -> Hoàn tác toàn bộ
             }
-            return new BorrowResult(false, "Lỗi hệ thống: " + e.getMessage());
+            return new BorrowResult(false, "Lỗi hệ thống trong quá trình lưu phiếu mượn: " + e.getMessage());
         } finally {
             if (conn != null) {
                 try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }

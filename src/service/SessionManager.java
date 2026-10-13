@@ -60,14 +60,14 @@ public class SessionManager {
         this.fullName = fullName;
         this.email = email;
         this.loginTime = new Date();
-        System.out.println("[SessionManager] Người dùng đăng nhập thành công: " + fullName + " (" + this.role + ") lúc " + loginTime);
+        System.out.println("[INFO] [SessionManager] Người dùng đăng nhập thành công: " + fullName + " [" + this.role + "] lúc " + loginTime);
     }
 
     /**
      * Đăng xuất khỏi hệ thống, xóa sạch thông tin phiên làm việc.
      */
     public synchronized void logout() {
-        System.out.println("[SessionManager] Người dùng '" + this.username + "' đã đăng xuất.");
+        System.out.println("[INFO] [SessionManager] Người dùng '" + this.username + "' đã đăng xuất khỏi hệ thống.");
         clearSession();
     }
 

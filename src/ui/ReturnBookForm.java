@@ -398,7 +398,7 @@ public class ReturnBookForm extends JFrame {
         SessionManager session = SessionManager.getInstance();
         if (!session.isLibrarian() && !session.isManager()) {
             JOptionPane.showMessageDialog(this,
-                    "Bạn không có quyền truy cập chức năng này. Vui lòng đăng nhập với tài khoản Thủ thư hoặc Quản lý.",
+                    "Từ chối quyền truy cập: Chức năng này yêu cầu tài khoản Thủ thư hoặc Quản trị viên.",
                     "Từ chối truy cập", JOptionPane.ERROR_MESSAGE);
             SwingUtilities.invokeLater(this::dispose);
             return;
@@ -412,7 +412,7 @@ public class ReturnBookForm extends JFrame {
     private void xuLyTraCuuSinhVien() {
         String studentId = txtStudentId.getText().trim();
         if (studentId.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã thẻ sinh viên!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã thẻ sinh viên.", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -428,7 +428,7 @@ public class ReturnBookForm extends JFrame {
             panelWarning.setVisible(false);
 
             if (currentItems.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Sinh viên " + currentStudent.getFullName() + " hiện không có sách nào đang mượn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Sinh viên " + currentStudent.getFullName() + " hiện không có tài liệu nào đang trong trạng thái mượn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 resetThongTinPhat();
                 return;
             }
@@ -555,7 +555,7 @@ public class ReturnBookForm extends JFrame {
      */
     private void xuLyXacNhanTra(ActionEvent event) {
         if (currentItems.isEmpty() || currentStudent == null) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét mã thẻ sinh viên trước!", "Thông báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng quét mã thẻ sinh viên trước khi thực hiện thao tác.", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -564,7 +564,7 @@ public class ReturnBookForm extends JFrame {
                 .toList();
 
         if (scannedList.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận!", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận hoàn trả.", "Cảnh báo", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
@@ -578,23 +578,23 @@ public class ReturnBookForm extends JFrame {
         double totalFine = returnController.tinhTongTienPhat(scannedList, currentStudent, now);
         long maxLateDays = returnController.tinhSoNgayTreLonNhat(scannedList, now);
 
-        // Điểm chạm 2: Nếu có phát sinh tiền phạt, hỏi thủ thư đã thu tiền mặt hay ghi nợ
+        // Xử lý phí phạt: Lựa chọn thu tiền mặt trực tiếp hoặc ghi nợ vào tài khoản
         boolean isPaidNow = false;
         if (totalFine > 0) {
             String fineMsg = String.format(
-                    "Phiên trả sách phát sinh tiền phạt:\n"
-                    + "- Tiền phạt: %,.0f VNĐ\n"
-                    + "- Số ngày trễ tối đa: %d ngày\n"
-                    + "- Sinh viên: %s (MSSV: %s)\n\n"
-                    + "Thủ thư vui lòng chọn hình thức xử lý tiền phạt:",
+                    "Giao dịch phát sinh phí phạt hoàn trả tài liệu:\n"
+                    + "  • Số tiền phạt: %,.0f VNĐ\n"
+                    + "  • Số ngày quá hạn tối đa: %d ngày\n"
+                    + "  • Sinh viên: %s (MSSV: %s)\n\n"
+                    + "Vui lòng lựa chọn phương thức xử lý khoản phạt:",
                     totalFine, maxLateDays, currentStudent.getFullName(), currentStudent.getStudentId()
             );
 
-            Object[] options = {"Đã thu tiền mặt", "Ghi nợ để trả sau", "Hủy"};
+            Object[] options = {"Thu tiền mặt tại quầy", "Ghi nợ vào tài khoản", "Hủy bỏ"};
             int choice = JOptionPane.showOptionDialog(
                     this,
                     fineMsg,
-                    "Thu tiền phạt trả sách",
+                    "Xử lý phí phạt trả sách",
                     JOptionPane.YES_NO_CANCEL_OPTION,
                     JOptionPane.QUESTION_MESSAGE,
                     null,
@@ -609,7 +609,7 @@ public class ReturnBookForm extends JFrame {
                 // Ghi nợ để trả sau
                 isPaidNow = false;
             } else {
-                // Hủy bỏ hoặc bấm X
+                // Hủy bỏ hoặc đóng hộp thoại
                 return;
             }
         }
@@ -622,13 +622,13 @@ public class ReturnBookForm extends JFrame {
             ReturnResult result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId, isPaidNow);
 
             if (result.isSuccess()) {
-                String paymentNotice = isPaidNow ? "Đã thu tiền mặt tại quầy (Không cộng nợ)." : "Đã ghi nợ vào tài khoản sinh viên.";
-                String message = "XÁC NHẬN TRẢ SÁCH THÀNH CÔNG!\n\n"
-                        + "Mã phiếu mượn: " + result.getSlipId() + "\n"
-                        + "Số ngày trễ: " + result.getLateDays() + " ngày\n"
+                String paymentNotice = isPaidNow ? "Đã thu tiền mặt trực tiếp tại quầy (Không ghi nhận nợ)." : "Đã ghi nhận nợ vào tài khoản sinh viên.";
+                String message = "XÁC NHẬN HOÀN TRẢ SÁCH THÀNH CÔNG\n\n"
+                        + "Mã phiếu: " + result.getSlipId() + "\n"
+                        + "Số ngày quá hạn: " + result.getLateDays() + " ngày\n"
                         + "Tiền phạt: " + String.format("%,.0f VNĐ", result.getFineAmount()) + "\n"
                         + (totalFine > 0 ? ("Hình thức xử lý phạt: " + paymentNotice + "\n\n") : "\n")
-                        + "Kho sách đã được cập nhật số lượng tồn tự động.";
+                        + "Dữ liệu tồn kho và hồ sơ mượn đã được cập nhật thành công vào hệ thống.";
 
                 JOptionPane.showMessageDialog(this, message, "Kết quả trả sách", JOptionPane.INFORMATION_MESSAGE);
 
@@ -655,8 +655,8 @@ public class ReturnBookForm extends JFrame {
         if (hasScanned) {
             int opt = JOptionPane.showConfirmDialog(
                     this,
-                    "Bạn đã quét sách nhưng chưa xác nhận trả. Bạn có chắc muốn hủy phiên này?",
-                    "Xác nhận hủy",
+                    "Dữ liệu trả sách chưa được hoàn tất xác nhận. Bạn có chắc chắn muốn hủy phiên làm việc này?",
+                    "Xác nhận hủy phiên",
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE
             );

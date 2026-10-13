@@ -27,11 +27,11 @@ public class LoginController {
             Account loggedInAccount = loginService.login(username, password);
             String role = loggedInAccount.getRole();
 
-            JOptionPane.showMessageDialog(view, "Đăng nhập thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(view, "Đăng nhập hệ thống thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
             redirectByRole(role, view);
 
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(view, "Đăng nhập thất bại!\nChi tiết: " + e.getMessage(), "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(view, "Đăng nhập thất bại.\nChi tiết lỗi: " + e.getMessage(), "Lỗi đăng nhập", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -57,7 +57,7 @@ public class LoginController {
                 dashboardForm.setVisible(true);
             });
         } else {
-            JOptionPane.showMessageDialog(null, "Vai trò không hợp lệ: " + role, "Lỗi phân quyền", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Quyền truy cập không hợp lệ: " + role, "Lỗi phân quyền", JOptionPane.ERROR_MESSAGE);
             if (currentView != null) {
                 currentView.setVisible(true);
             }

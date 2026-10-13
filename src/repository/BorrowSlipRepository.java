@@ -60,7 +60,7 @@ public class BorrowSlipRepository {
             ps.setTimestamp(5, borrowSlip.getDueDate());
 
             if (ps.executeUpdate() != 1) {
-                throw new SQLException("Không thể lưu phiếu mượn " + borrowSlip.getSlipId());
+                throw new SQLException("Không thể lưu bản ghi phiếu mượn: " + borrowSlip.getSlipId());
             }
         }
     }

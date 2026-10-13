@@ -63,7 +63,7 @@ public class PaymentRepository {
             ps.setTimestamp(6, payment.getPaymentTime() != null ? payment.getPaymentTime() : new Timestamp(System.currentTimeMillis()));
 
             if (ps.executeUpdate() != 1) {
-                throw new SQLException("Không thể lưu bản ghi thanh toán " + payment.getTransactionId());
+                throw new SQLException("Không thể lưu bản ghi thanh toán: " + payment.getTransactionId());
             }
         }
     }
