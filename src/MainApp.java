@@ -176,22 +176,22 @@ public class MainApp {
         boolean dbStatus = DBConnection.getInstance().testConnection(2);
         sb.append("1. TRẠNG THÁI KẾT NỐI CƠ SỞ DỮ LIỆU MYSQL:\n");
         if (dbStatus) {
-            sb.append("   -> Trạng thái: KẾT NỐI THÀNH CÔNG\n");
-            sb.append("   -> Database:   quan_li_thu_vien\n");
-            sb.append("   -> Driver:     com.mysql.cj.jdbc.Driver\n\n");
+            sb.append("Trạng thái: KẾT NỐI THÀNH CÔNG\n");
+            sb.append("Database:   quan_li_thu_vien\n");
+            sb.append("Driver:     com.mysql.cj.jdbc.Driver\n\n");
         } else {
-            sb.append("   -> Trạng thái: KHÔNG THỂ KẾT NỐI\n");
-            sb.append("   -> Khắc phục:  Khởi động dịch vụ MySQL và nạp script setup_database.sql\n\n");
+            sb.append("Trạng thái: KHÔNG THỂ KẾT NỐI\n");
+            sb.append("Khắc phục:  Khởi động dịch vụ MySQL và nạp script setup_database.sql\n\n");
         }
 
         SessionManager session = SessionManager.getInstance();
         sb.append("2. PHIÊN LÀM VIỆC HIỆN TẠI (SESSION MANAGER):\n");
-        sb.append("   -> Xác thực:   ").append(session.isLoggedIn() ? "Đã xác thực" : "Chưa xác thực (Khách)").append("\n");
-        sb.append("   -> Người dùng: ").append(session.getDisplayNameWithRole()).append("\n\n");
+        sb.append("Xác thực:   ").append(session.isLoggedIn() ? "Đã xác thực" : "Chưa xác thực (Khách)").append("\n");
+        sb.append("Người dùng: ").append(session.getDisplayNameWithRole()).append("\n\n");
 
         sb.append("3. MÔI TRƯỜNG THỰC THI (RUNTIME ENVIRONMENT):\n");
-        sb.append("   -> Java:       ").append(System.getProperty("java.version")).append(" (").append(System.getProperty("java.vendor")).append(")\n");
-        sb.append("   -> Hệ điều hành: ").append(System.getProperty("os.name")).append(" ").append(System.getProperty("os.arch")).append("\n");
+        sb.append("Java:       ").append(System.getProperty("java.version")).append(" (").append(System.getProperty("java.vendor")).append(")\n");
+        sb.append("Hệ điều hành: ").append(System.getProperty("os.name")).append(" ").append(System.getProperty("os.arch")).append("\n");
 
         area.setText(sb.toString());
     }
