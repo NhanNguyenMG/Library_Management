@@ -157,31 +157,6 @@ public class BorrowSlipRepository {
         }
     }
 
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    /**
-     * Alias khớp Bảng 13 SRS: findSachDangMuonByMaThe(String maTheSV)
-     */
-    public List<BorrowSlip> findSachDangMuonByMaThe(String maTheSV) throws SQLException {
-        return findActiveSlipsByStudentId(maTheSV);
-    }
-
-    /**
-     * Alias khớp Bảng 13 và Bảng 17 SRS: updateNgayTra(String maPhieu, Timestamp ngayTraThucTe, Connection conn)
-     */
-    public boolean updateNgayTra(String maPhieu, Timestamp ngayTraThucTe, Connection conn) throws SQLException {
-        return updateReturnDate(maPhieu, ngayTraThucTe, conn);
-    }
-
-    /**
-     * Alias khớp Bảng 13 SRS: luuPhieuMuon(BorrowSlip duLieuPhieuMuon, Connection conn)
-     */
-    public void luuPhieuMuon(BorrowSlip duLieuPhieuMuon, Connection conn) throws SQLException {
-        save(duLieuPhieuMuon, conn);
-    }
-
     private BorrowSlip mapRowToBorrowSlip(ResultSet rs) throws SQLException {
         BorrowSlip borrowSlip = new BorrowSlip();
         borrowSlip.setSlipId(rs.getString("ma_phieu"));

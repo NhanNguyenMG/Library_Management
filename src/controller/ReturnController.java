@@ -86,40 +86,4 @@ public class ReturnController {
                                          boolean isPaidNow) {
         return returnService.confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
     }
-
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    public Student layThongTinSinhVien(String studentId) {
-        return getStudentInfo(studentId);
-    }
-
-    public List<BorrowingItemDTO> laySachDangMuon(String studentId) {
-        return getBorrowingDetails(studentId);
-    }
-
-    public long tinhSoNgayTre(Timestamp dueDate, Timestamp actualReturnDate) {
-        return calculateLateDays(dueDate, actualReturnDate);
-    }
-
-    public double tinhTienPhat(long lateDays, Student student, double compensationFees) {
-        return calculateFine(lateDays, student, compensationFees);
-    }
-
-    public double tinhTongTienPhat(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
-        return calculateTotalFine(items, student, actualReturnDate);
-    }
-
-    public long tinhSoNgayTreLonNhat(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
-        return calculateMaxLateDays(items, actualReturnDate);
-    }
-
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId) {
-        return confirmReturn(scannedItems, slipId, student, librarianId, false);
-    }
-
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId, boolean isPaidNow) {
-        return confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
-    }
 }

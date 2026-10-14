@@ -43,20 +43,4 @@ public class DebtController {
     public DebtPaymentResultDTO payDebt(String studentId, double amountToPay, String paymentMethod, String librarianId) {
         return debtService.payDebt(studentId, amountToPay, paymentMethod, librarianId);
     }
-
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    public Student layThongTinNoSinhVien(String studentId) {
-        return getStudentDebtInfo(studentId);
-    }
-
-    public List<Payment> layDanhSachKhoanPhatChuaTra(String studentId) {
-        return getUnpaidFines(studentId);
-    }
-
-    public DebtPaymentResultDTO thanhToanNo(String studentId, double amountToPay, String paymentMethod, String librarianId) {
-        return payDebt(studentId, amountToPay, paymentMethod, librarianId);
-    }
 }

@@ -355,16 +355,4 @@ public class ReturnService {
             }
         }
     }
-
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId) {
-        return confirmReturn(scannedItems, slipId, student, librarianId);
-    }
-
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId, boolean isPaidNow) {
-        return confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
-    }
 }

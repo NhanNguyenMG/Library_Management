@@ -213,15 +213,4 @@ public class PaymentRepository {
     public void updatePaymentStatus(String transactionId, String status, String paymentMethod, String librarianId, Connection conn) throws SQLException {
         markAsPaid(transactionId, paymentMethod, conn);
     }
-
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    /**
-     * Alias khớp Bảng 13 và Bảng 17 SRS: taoKhoanPhat(maPhieu, soTienPhat, lyDo)
-     */
-    public Payment taoKhoanPhat(String maPhieu, double soTienPhat, String lyDo, Connection conn) throws SQLException {
-        return createFineRecord(maPhieu, soTienPhat, "TIEN_MAT", "CHUA_THANH_TOAN", conn);
-    }
 }

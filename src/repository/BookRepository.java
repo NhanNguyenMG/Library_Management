@@ -158,29 +158,4 @@ public class BookRepository {
             }
         }
     }
-
-    // =========================================================================
-    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
-    // =========================================================================
-
-    /**
-     * Alias khớp Bảng 13 SRS: timTheoMaDauSach(maDauSach)
-     */
-    public Book timTheoMaDauSach(String maDauSach) throws SQLException {
-        return findById(maDauSach);
-    }
-
-    /**
-     * Alias khớp Bảng 13 SRS: capNhatSoLuong(maDauSach, quantity)
-     */
-    public boolean capNhatSoLuong(String maDauSach, int quantity, Connection conn) throws SQLException {
-        return increaseStock(maDauSach, quantity, conn);
-    }
-
-    /**
-     * Alias khớp Bảng 13 và Bảng 17 SRS: updateSoLuongCon(maDauSach, quantity)
-     */
-    public boolean updateSoLuongCon(String maDauSach, int quantity, Connection conn) throws SQLException {
-        return increaseStock(maDauSach, quantity, conn);
-    }
 }
