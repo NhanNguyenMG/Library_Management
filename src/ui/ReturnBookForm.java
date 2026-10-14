@@ -197,7 +197,7 @@ public class ReturnBookForm extends JFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    xuLyTraCuuSinhVien();
+                    handleStudentSearch();
                 }
             }
         });
@@ -210,7 +210,7 @@ public class ReturnBookForm extends JFrame {
         btnManualInput = createStyledButton("Nhập mã thủ công", new Color(241, 245, 249), new Color(30, 41, 59));
         btnManualInput.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         btnManualInput.setPreferredSize(new Dimension(160, 34));
-        btnManualInput.addActionListener(e -> xuLyTraCuuSinhVien());
+        btnManualInput.addActionListener(e -> handleStudentSearch());
         panel.add(btnManualInput, gbc);
 
         return panel;
@@ -272,7 +272,7 @@ public class ReturnBookForm extends JFrame {
         // Editor & Renderer cho Dropdown "Tình trạng vật lý"
         JComboBox<String> comboCondition = new JComboBox<>(new String[]{"Tốt", "Hư hỏng", "Mất sách"});
         comboCondition.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        comboCondition.addActionListener(e -> capNhatPhiBoiThuong());
+        comboCondition.addActionListener(e -> updateCompensationFee());
         tblBooks.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(comboCondition));
 
         // Editor & Renderer cho nút "Quét/Xác nhận trả" (sử dụng component UI dùng chung)
@@ -282,7 +282,7 @@ public class ReturnBookForm extends JFrame {
         tblBooks.getColumnModel().getColumn(4).setCellRenderer(
                 new TableButtonRenderer("Quét/Xác nhận trả", btnBg, btnFg, btnBorder));
         tblBooks.getColumnModel().getColumn(4).setCellEditor(
-                new TableButtonEditor("Quét/Xác nhận trả", btnBg, btnFg, btnBorder, this::xuLyQuetDongSach));
+                new TableButtonEditor("Quét/Xác nhận trả", btnBg, btnFg, btnBorder, this::handleScanBookRow));
 
         JScrollPane scrollPane = new JScrollPane(tblBooks);
         scrollPane.setPreferredSize(new Dimension(880, 160));
@@ -370,13 +370,13 @@ public class ReturnBookForm extends JFrame {
         btnConfirmReturn.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnConfirmReturn.setPreferredSize(new Dimension(150, 40));
         btnConfirmReturn.setEnabled(false); // Khóa nếu chưa quét cuốn nào
-        btnConfirmReturn.addActionListener(this::xuLyXacNhanTra);
+        btnConfirmReturn.addActionListener(this::handleConfirmReturn);
 
         // Nút: Hủy (Màu xám)
         btnCancel = createStyledButton("Hủy", new Color(241, 245, 249), new Color(30, 41, 59));
         btnCancel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         btnCancel.setPreferredSize(new Dimension(100, 40));
-        btnCancel.addActionListener(this::xuLyHuy);
+        btnCancel.addActionListener(this::handleCancel);
 
         panel.add(btnConfirmReturn);
         panel.add(btnCancel);
@@ -416,7 +416,7 @@ public class ReturnBookForm extends JFrame {
     /**
      * Sự kiện onScan_MaThe: Tra cứu danh sách sách đang mượn theo mã thẻ SV
      */
-    private void xuLyTraCuuSinhVien() {
+    private void handleStudentSearch() {
         String studentId = txtStudentId.getText().trim();
         if (studentId.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng quét hoặc nhập mã thẻ sinh viên.", "Thông báo", JOptionPane.WARNING_MESSAGE);
@@ -436,7 +436,7 @@ public class ReturnBookForm extends JFrame {
 
             if (currentItems.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Sinh viên " + currentStudent.getFullName() + " hiện không có tài liệu nào đang trong trạng thái mượn.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-                resetThongTinPhat();
+                resetFineInfo();
                 return;
             }
 
@@ -450,21 +450,21 @@ public class ReturnBookForm extends JFrame {
                 });
             }
 
-            tinhToanLaiPhat();
+            recalculateFine();
 
         } catch (Exception e) {
             JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi tra cứu", JOptionPane.ERROR_MESSAGE);
             tableModel.setRowCount(0);
             currentStudent = null;
             currentItems.clear();
-            resetThongTinPhat();
+            resetFineInfo();
         }
     }
 
     /**
      * Xử lý khi quét / xác nhận trả từng dòng sách
      */
-    private void xuLyQuetDongSach(int row) {
+    private void handleScanBookRow(int row) {
         if (row < 0 || row >= currentItems.size()) {
             return;
         }
@@ -476,14 +476,14 @@ public class ReturnBookForm extends JFrame {
         // Ẩn cảnh báo vì sách khớp dòng
         panelWarning.setVisible(false);
 
-        // Tính toán lại phạt và cập nhật trạng thái nút Xác nhận
-        tinhToanLaiPhat();
+        // Tính toán lại phạt và cập trạng thái nút Xác nhận
+        recalculateFine();
     }
 
     /**
      * Cập nhật phí bồi thường khi thay đổi tình trạng vật lý (Dropdown)
      */
-    private void capNhatPhiBoiThuong() {
+    private void updateCompensationFee() {
         int selectedRow = tblBooks.getSelectedRow();
         if (selectedRow >= 0 && selectedRow < currentItems.size()) {
             String condition = (String) tblBooks.getValueAt(selectedRow, 3);
@@ -497,16 +497,16 @@ public class ReturnBookForm extends JFrame {
             } else {
                 item.setCompensationFee(0.0);
             }
-            tinhToanLaiPhat();
+            recalculateFine();
         }
     }
 
     /**
      * Tính toán số ngày trễ và tổng tiền phạt dự kiến
      */
-    private void tinhToanLaiPhat() {
+    private void recalculateFine() {
         if (currentItems.isEmpty() || currentStudent == null) {
-            resetThongTinPhat();
+            resetFineInfo();
             return;
         }
 
@@ -535,7 +535,7 @@ public class ReturnBookForm extends JFrame {
         }
     }
 
-    private void resetThongTinPhat() {
+    private void resetFineInfo() {
         lblLateDaysValue.setText("0 ngày");
         lblTotalFineValue.setText("0 đ");
         btnConfirmReturn.setEnabled(false);
@@ -560,7 +560,7 @@ public class ReturnBookForm extends JFrame {
     /**
      * Sự kiện onClick_XacNhanTra: Thực hiện Transaction trả sách và hiển thị kết quả
      */
-    private void xuLyXacNhanTra(ActionEvent event) {
+    private void handleConfirmReturn(ActionEvent event) {
         if (currentItems.isEmpty() || currentStudent == null) {
             JOptionPane.showMessageDialog(this, "Vui lòng quét mã thẻ sinh viên trước khi thực hiện thao tác.", "Thông báo", JOptionPane.WARNING_MESSAGE);
             return;
@@ -640,7 +640,7 @@ public class ReturnBookForm extends JFrame {
                 JOptionPane.showMessageDialog(this, message, "Kết quả trả sách", JOptionPane.INFORMATION_MESSAGE);
 
                 // Tải lại dữ liệu sinh viên sau khi trả
-                xuLyTraCuuSinhVien();
+                handleStudentSearch();
 
             } else {
                 panelWarning.setVisible(true);
@@ -657,7 +657,7 @@ public class ReturnBookForm extends JFrame {
     /**
      * Sự kiện onClick_Huy: Kiểm tra nếu đã quét thì hỏi xác nhận trước khi hủy
      */
-    private void xuLyHuy(ActionEvent event) {
+    private void handleCancel(ActionEvent event) {
         boolean hasScanned = currentItems.stream().anyMatch(BorrowingItemDTO::isScanned);
         if (hasScanned) {
             int opt = JOptionPane.showConfirmDialog(
@@ -678,7 +678,7 @@ public class ReturnBookForm extends JFrame {
         currentItems.clear();
         currentStudent = null;
         panelWarning.setVisible(false);
-        resetThongTinPhat();
+        resetFineInfo();
         txtStudentId.requestFocusInWindow();
     }
 

@@ -36,15 +36,15 @@ public class SearchBookForm extends JFrame {
 
         searchController = new SearchController();
 
-        khoiTaoGiaoDien();
-        ganSuKien();
-        taiToanBoDanhSachSach(); // Tự động hiển thị toàn bộ sách trong thư viện ngay khi mở form
+        initUI();
+        initEvents();
+        loadAllBooks(); // Tự động hiển thị toàn bộ sách trong thư viện ngay khi mở form
     }
 
     /**
      * Khởi tạo giao diện
      */
-    private void khoiTaoGiaoDien() {
+    private void initUI() {
 
         setTitle("Tra cứu sách - Library Management System");
 
@@ -83,7 +83,7 @@ public class SearchBookForm extends JFrame {
         JPanel panelHeader = new JPanel(new BorderLayout(0, 12));
         panelHeader.setOpaque(false);
 
-        JPanel panelStudentBar = taoThanhThongTinSinhVien();
+        JPanel panelStudentBar = createStudentInfoBar();
         if (panelStudentBar != null) {
             panelHeader.add(panelStudentBar, BorderLayout.NORTH);
         }
@@ -265,21 +265,21 @@ public class SearchBookForm extends JFrame {
     /**
      * Gán sự kiện cho giao diện
      */
-    private void ganSuKien() {
+    private void initEvents() {
 
         // Nút Tìm kiếm
         btnTimKiem.addActionListener(
-                e -> xuLyTimKiem()
+                e -> handleSearch()
         );
 
         // Nhấn Enter trong ô tìm kiếm
         txtTuKhoa.addActionListener(
-                e -> xuLyTimKiem()
+                e -> handleSearch()
         );
 
         // Nút Xóa
         btnXoa.addActionListener(
-                e -> xuLyXoa()
+                e -> handleClear()
         );
 
         // Double-click vào dòng sách để xem chi tiết
@@ -295,7 +295,7 @@ public class SearchBookForm extends JFrame {
                                 && SwingUtilities
                                 .isLeftMouseButton(e)) {
 
-                            xuLyXemChiTiet();
+                            handleViewDetail();
                         }
                     }
                 }
@@ -305,10 +305,10 @@ public class SearchBookForm extends JFrame {
     /**
      * Tải và hiển thị toàn bộ danh sách sách có trong thư viện
      */
-    public void taiToanBoDanhSachSach() {
+    public void loadAllBooks() {
         try {
             List<Book> danhSach = searchController.getAllBooks();
-            hienThiDanhSachSach(danhSach);
+            displayBookList(danhSach);
         } catch (SQLException e) {
             JOptionPane.showMessageDialog(
                     this,
@@ -322,9 +322,9 @@ public class SearchBookForm extends JFrame {
     /**
      * Hiển thị danh sách sách lên bảng và cập nhật nhãn số lượng
      */
-    private void hienThiDanhSachSach(List<Book> danhSach) {
+    private void displayBookList(List<Book> danhSach) {
         danhSachSachHienTai = danhSach;
-        xoaDuLieuBang();
+        clearTableData();
 
         if (danhSach != null) {
             for (Book book : danhSach) {
@@ -350,14 +350,14 @@ public class SearchBookForm extends JFrame {
     /**
      * Xử lý tìm kiếm sách
      */
-    private void xuLyTimKiem() {
+    private void handleSearch() {
 
         String tuKhoa =
                 txtTuKhoa.getText().trim();
 
         // Nếu từ khóa rỗng -> Tải lại toàn bộ sách
         if (tuKhoa.isEmpty()) {
-            taiToanBoDanhSachSach();
+            loadAllBooks();
             return;
         }
 
@@ -367,7 +367,7 @@ public class SearchBookForm extends JFrame {
                             tuKhoa
                     );
 
-            hienThiDanhSachSach(danhSachSach);
+            displayBookList(danhSachSach);
 
             // Không tìm thấy kết quả
             if (danhSachSach.isEmpty()) {
@@ -383,7 +383,7 @@ public class SearchBookForm extends JFrame {
 
         } catch (IllegalArgumentException e) {
 
-            taiToanBoDanhSachSach();
+            loadAllBooks();
 
         } catch (SQLException e) {
 
@@ -401,11 +401,11 @@ public class SearchBookForm extends JFrame {
     /**
      * Xử lý nút Xóa bộ lọc / Hiển thị tất cả sách
      */
-    private void xuLyXoa() {
+    private void handleClear() {
 
         txtTuKhoa.setText("");
 
-        taiToanBoDanhSachSach(); // Tải lại toàn bộ danh mục tài liệu vào bảng hiển thị
+        loadAllBooks(); // Tải lại toàn bộ danh mục tài liệu vào bảng hiển thị
 
         txtTuKhoa.requestFocus();
     }
@@ -413,7 +413,7 @@ public class SearchBookForm extends JFrame {
     /**
      * Xóa dữ liệu trong bảng
      */
-    private void xoaDuLieuBang() {
+    private void clearTableData() {
 
         tableModel.setRowCount(0);
     }
@@ -421,7 +421,7 @@ public class SearchBookForm extends JFrame {
     /**
      * Xem chi tiết sách khi double-click
      */
-    private void xuLyXemChiTiet() {
+    private void handleViewDetail() {
 
         int dongDuocChon =
                 tblSach.getSelectedRow();
@@ -534,7 +534,7 @@ public class SearchBookForm extends JFrame {
     /**
      * Hiển thị một kết quả vào bảng
      */
-    public void hienThiKetQua(
+    public void displayResult(
             String maSach,
             String tenSach,
             String tacGia,
@@ -554,14 +554,14 @@ public class SearchBookForm extends JFrame {
     /**
      * Xóa kết quả cũ
      */
-    public void xoaKetQuaCu() {
+    public void clearPreviousResults() {
 
         tableModel.setRowCount(0);
 
         danhSachSachHienTai = null;
     }
 
-    private JPanel taoThanhThongTinSinhVien() {
+    private JPanel createStudentInfoBar() {
         SessionManager session = SessionManager.getInstance();
         if (!session.isLoggedIn() || !session.isStudent()) {
             return null;
@@ -595,12 +595,12 @@ public class SearchBookForm extends JFrame {
         btnPayDebt = createStyledButton("Thanh toán tiền phạt", new Color(39, 174, 96), Color.WHITE);
         btnPayDebt.setFont(new Font("Segoe UI", Font.BOLD, 12));
         btnPayDebt.setPreferredSize(new Dimension(190, 32));
-        btnPayDebt.addActionListener(e -> xuLyThanhToanNoOnline());
+        btnPayDebt.addActionListener(e -> handleOnlineDebtPayment());
 
         JButton btnLogout = createStyledButton("Đăng xuất", new Color(241, 245, 249), new Color(30, 41, 59));
         btnLogout.setFont(new Font("Segoe UI", Font.PLAIN, 12));
         btnLogout.setPreferredSize(new Dimension(95, 32));
-        btnLogout.addActionListener(e -> xuLyDangXuat());
+        btnLogout.addActionListener(e -> handleLogout());
 
         actionPanel.add(btnPayDebt);
         actionPanel.add(btnLogout);
@@ -608,12 +608,12 @@ public class SearchBookForm extends JFrame {
         bar.add(infoPanel, BorderLayout.WEST);
         bar.add(actionPanel, BorderLayout.EAST);
 
-        capNhatDuLieuNoSinhVien();
+        updateStudentDebtData();
 
         return bar;
     }
 
-    private void capNhatDuLieuNoSinhVien() {
+    private void updateStudentDebtData() {
         SessionManager session = SessionManager.getInstance();
         if (!session.isLoggedIn() || !session.isStudent() || lblDebtInfo == null) return;
 
@@ -638,7 +638,7 @@ public class SearchBookForm extends JFrame {
         }
     }
 
-    private void xuLyThanhToanNoOnline() {
+    private void handleOnlineDebtPayment() {
         SessionManager session = SessionManager.getInstance();
         if (!session.isLoggedIn() || !session.isStudent()) return;
 
@@ -676,7 +676,7 @@ public class SearchBookForm extends JFrame {
                             "Thanh toán thành công",
                             JOptionPane.INFORMATION_MESSAGE
                     );
-                    capNhatDuLieuNoSinhVien();
+                    updateStudentDebtData();
                 } else {
                     JOptionPane.showMessageDialog(
                             this,
@@ -691,7 +691,7 @@ public class SearchBookForm extends JFrame {
         }
     }
 
-    private void xuLyDangXuat() {
+    private void handleLogout() {
         int choice = JOptionPane.showConfirmDialog(
                 this,
                 "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?",
