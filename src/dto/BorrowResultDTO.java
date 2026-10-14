@@ -1,9 +1,13 @@
-package model;
+package dto;
+
+import model.Book;
+import model.Student;
 
 /**
- * Kết quả thực hiện mượn sách
+ * Data Transfer Object (DTO) chứa kết quả xử lý nghiệp vụ mượn sách
+ * truyền tải từ BorrowService sang BorrowController và BorrowForm.
  */
-public class BorrowResult {
+public class BorrowResultDTO {
 
     private boolean success;
     private String message;
@@ -12,9 +16,9 @@ public class BorrowResult {
     private Book book;
     private String slipId;
 
-    public BorrowResult() {}
+    public BorrowResultDTO() {}
 
-    public BorrowResult(boolean success, String message) {
+    public BorrowResultDTO(boolean success, String message) {
         this.success = success;
         this.message = message;
     }

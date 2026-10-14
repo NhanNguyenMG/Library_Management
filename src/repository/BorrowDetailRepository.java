@@ -10,26 +10,35 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * =============================================================================
+ * REPOSITORY TRUY XUẤT DỮ LIỆU CHI TIẾT PHIẾU MƯỢN (BẢNG chi_tiet_phieu_muon)
+ * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
+ * Ánh xạ với tài liệu SRS và Báo cáo cuối kỳ môn Công nghệ Phần mềm.
+ * =============================================================================
+ */
 public class BorrowDetailRepository {
 
     private static final String DETAIL_ID_PREFIX = "CT";
     private static final int DETAIL_ID_NUMBER_LENGTH = 4;
 
     /**
-     * 1. Sinh mã chi tiết tiếp theo theo định dạng CTxxxx (ví dụ: CT0004 -> CT0005).
+     * Sinh mã chi tiết tiếp theo theo định dạng CTxxxx (ví dụ: CT0004 -> CT0005).
      *
-     * @param conn kết nối đang mở Transaction (do Service quản lý)
+     * @param conn kết nối đang mở Transaction
+     * @return mã chi tiết mới
+     * @throws SQLException nếu truy vấn thất bại
      */
     public String generateNextDetailId(Connection conn) throws SQLException {
         return formatDetailId(findMaxDetailNumber(conn) + 1);
     }
 
     /**
-     * 2. Lưu một dòng chi tiết phiếu mượn.
+     * Lưu một dòng chi tiết phiếu mượn.
      *
      * @param borrowDetail chi tiết đã có đủ id, slipId, bookId, quantity
-     * @param conn         kết nối đang mở Transaction (do Service quản lý)
-     * @throws SQLException nếu ghi thất bại (ví dụ trùng cặp ma_phieu + ma_dau_sach), để Service rollback
+     * @param conn kết nối đang mở Transaction
+     * @throws SQLException nếu ghi thất bại
      */
     public void save(BorrowDetail borrowDetail, Connection conn) throws SQLException {
         String sql = "INSERT INTO chi_tiet_phieu_muon (id, ma_phieu, ma_dau_sach, so_luong, ghi_chu) "
@@ -48,11 +57,12 @@ public class BorrowDetailRepository {
     }
 
     /**
-     * 3. Lưu toàn bộ danh sách chi tiết của một phiếu mượn.
+     * Lưu toàn bộ danh sách chi tiết của một phiếu mượn.
      * Dòng nào chưa có id sẽ được tự động cấp mã CTxxxx liên tiếp nhau.
      *
      * @param borrowDetails danh sách chi tiết của cùng một phiếu
-     * @param conn          kết nối đang mở Transaction (do Service quản lý)
+     * @param conn kết nối đang mở Transaction
+     * @throws SQLException nếu ghi thất bại
      */
     public void saveAll(List<BorrowDetail> borrowDetails, Connection conn) throws SQLException {
         long nextNumber = findMaxDetailNumber(conn) + 1;
@@ -66,16 +76,17 @@ public class BorrowDetailRepository {
     }
 
     /**
-     * 4. Lấy danh sách chi tiết (các đầu sách) thuộc một phiếu mượn.
+     * Lấy danh sách chi tiết (các đầu sách) thuộc một phiếu mượn.
      *
      * @param slipId mã phiếu mượn
      * @return danh sách chi tiết, rỗng nếu phiếu không có chi tiết nào
+     * @throws SQLException nếu lỗi truy vấn
      */
     public List<BorrowDetail> findBySlipId(String slipId) throws SQLException {
         String sql = "SELECT id, ma_phieu, ma_dau_sach, so_luong, ghi_chu "
                 + "FROM chi_tiet_phieu_muon WHERE ma_phieu = ? ORDER BY id";
         List<BorrowDetail> borrowDetails = new ArrayList<>();
-        Connection conn = DBConnection.getInstance().getConnection(); // Không đóng: kết nối dùng chung
+        Connection conn = DBConnection.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, slipId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -92,6 +103,7 @@ public class BorrowDetailRepository {
      *
      * @param slipId mã phiếu mượn
      * @return danh sách các cuốn sách chưa trả
+     * @throws SQLException nếu lỗi truy vấn
      */
     public List<BorrowDetail> findActiveBySlipId(String slipId) throws SQLException {
         String sql = "SELECT id, ma_phieu, ma_dau_sach, so_luong, ghi_chu "
@@ -115,6 +127,7 @@ public class BorrowDetailRepository {
      * @param slipId mã phiếu mượn
      * @param bookId mã đầu sách được trả
      * @param conn kết nối Transaction đang mở
+     * @throws SQLException nếu lỗi cập nhật
      */
     public void markAsReturned(String slipId, String bookId, Connection conn) throws SQLException {
         String sql = "UPDATE chi_tiet_phieu_muon SET ghi_chu = 'DA_TRA' WHERE ma_phieu = ? AND ma_dau_sach = ?";
@@ -131,6 +144,7 @@ public class BorrowDetailRepository {
      * @param slipId mã phiếu mượn
      * @param conn kết nối Transaction đang mở
      * @return số đầu sách chưa trả
+     * @throws SQLException nếu lỗi truy vấn
      */
     public int countUnreturnedDetails(String slipId, Connection conn) throws SQLException {
         String sql = "SELECT COUNT(*) AS cnt FROM chi_tiet_phieu_muon WHERE ma_phieu = ? AND (ghi_chu IS NULL OR ghi_chu NOT LIKE 'DA_TRA%')";
@@ -143,10 +157,11 @@ public class BorrowDetailRepository {
     }
 
     /**
-     * 5. Đếm tổng số cuốn sách sinh viên đang mượn (thuộc các phiếu chưa trả và sách chưa trả).
+     * Đếm tổng số cuốn sách sinh viên đang mượn (thuộc các phiếu chưa trả và sách chưa trả).
      *
      * @param studentId mã số sinh viên (mssv)
      * @return tổng số cuốn đang mượn, 0 nếu không có
+     * @throws SQLException nếu lỗi truy vấn
      */
     public int countBorrowingBooksByStudentId(String studentId) throws SQLException {
         String sql = "SELECT COALESCE(SUM(ct.so_luong), 0) AS borrowing_count "
@@ -162,10 +177,6 @@ public class BorrowDetailRepository {
         }
     }
 
-    // HÀM HỖ TRỢ NỘI BỘ
-    /**
-     * Lấy phần số lớn nhất của mã chi tiết hiện có (CT0004 -> 4). Bảng rỗng trả về 0.
-     */
     private long findMaxDetailNumber(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(id, ?) AS UNSIGNED)) AS max_number "
                 + "FROM chi_tiet_phieu_muon WHERE id LIKE ?";
@@ -182,9 +193,6 @@ public class BorrowDetailRepository {
         return String.format("%s%0" + DETAIL_ID_NUMBER_LENGTH + "d", DETAIL_ID_PREFIX, number);
     }
 
-    /**
-     * Ánh xạ một dòng ResultSet của bảng chi_tiet_phieu_muon sang đối tượng BorrowDetail.
-     */
     private BorrowDetail mapRowToBorrowDetail(ResultSet rs) throws SQLException {
         BorrowDetail borrowDetail = new BorrowDetail();
         borrowDetail.setId(rs.getString("id"));

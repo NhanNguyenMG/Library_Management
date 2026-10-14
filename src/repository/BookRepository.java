@@ -10,11 +10,20 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * =============================================================================
+ * REPOSITORY TRUY XUẤT DỮ LIỆU ĐẦU SÁCH (BẢNG dau_sach)
+ * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
+ * Ánh xạ với tài liệu SRS (Bảng 12, 13 DauSachRepository) và Báo cáo cuối kỳ.
+ * =============================================================================
+ */
 public class BookRepository {
 
     /**
      * Lấy toàn bộ danh sách đầu sách có trong thư viện (sắp xếp theo mã sách).
      *
+     * @return danh sách tất cả đầu sách
+     * @throws SQLException nếu xảy ra lỗi truy vấn CSDL
      */
     public List<Book> getAllBooks() throws SQLException {
         List<Book> books = new ArrayList<>();
@@ -41,10 +50,13 @@ public class BookRepository {
     }
 
     /**
-     * Tìm kiếm sách theo từ khóa (mã sách, tên sách hoặc tác giả)
+     * Tìm kiếm sách theo từ khóa (mã sách, tên sách hoặc tác giả).
+     *
+     * @param keyword từ khóa tìm kiếm
+     * @return danh sách sách khớp từ khóa
+     * @throws SQLException nếu xảy ra lỗi truy vấn CSDL
      */
     public List<Book> searchBooks(String keyword) throws SQLException {
-
         List<Book> books = new ArrayList<>();
 
         String sql = """
@@ -56,23 +68,17 @@ public class BookRepository {
                 ORDER BY tac_sach
                 """;
 
-        Connection connection =
-                DBConnection.getInstance().getConnection();
+        Connection connection = DBConnection.getInstance().getConnection();
 
-        try (PreparedStatement preparedStatement =
-                     connection.prepareStatement(sql)) {
-
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             String searchKeyword = "%" + keyword.trim() + "%";
 
             preparedStatement.setString(1, searchKeyword);
             preparedStatement.setString(2, searchKeyword);
             preparedStatement.setString(3, searchKeyword);
 
-            try (ResultSet resultSet =
-                         preparedStatement.executeQuery()) {
-
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-
                     Book book = new Book(
                             resultSet.getString("ma_dau_sach"),
                             resultSet.getString("tac_sach"),
@@ -80,7 +86,6 @@ public class BookRepository {
                             resultSet.getInt("so_luong_con"),
                             resultSet.getString("mo_ta")
                     );
-
                     books.add(book);
                 }
             }
@@ -90,7 +95,7 @@ public class BookRepository {
     }
 
     /**
-     * Tăng số lượng tồn kho của đầu sách
+     * Tăng số lượng tồn kho của đầu sách khi hoàn tất trả sách.
      *
      * @param bookId mã đầu sách
      * @param quantity số lượng sách tăng thêm khi trả
@@ -135,20 +140,21 @@ public class BookRepository {
     }
 
     /**
-     * Giảm số lượng tồn kho đầu sách khi lập phiếu mượn
+     * Giảm số lượng tồn kho đầu sách khi lập phiếu mượn (Concurrency-safe).
+     *
+     * @param bookId mã đầu sách
+     * @param quantity số lượng mượn
+     * @param connection kết nối Transaction đang mở
+     * @throws SQLException nếu tồn kho không đủ hoặc không tìm thấy sách
      */
     public void decreaseStock(String bookId, int quantity, Connection connection) throws SQLException {
-
-        // Điều kiện so_luong_con >= ? đảm bảo tồn kho không bao giờ bị âm
         String sql = """
                 UPDATE dau_sach
                 SET so_luong_con = so_luong_con - ?
                 WHERE ma_dau_sach = ? AND so_luong_con >= ?
                 """;
 
-        try (PreparedStatement preparedStatement =
-                     connection.prepareStatement(sql)) {
-
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
             preparedStatement.setInt(1, quantity);
             preparedStatement.setString(2, bookId);
             preparedStatement.setInt(3, quantity);
@@ -157,5 +163,30 @@ public class BookRepository {
                 throw new SQLException("Đầu sách " + bookId + " không tồn tại hoặc không đủ số lượng khả dụng để mượn.");
             }
         }
+    }
+
+    // =========================================================================
+    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
+    // =========================================================================
+
+    /**
+     * Alias khớp Bảng 13 SRS: timTheoMaDauSach(maDauSach)
+     */
+    public Book timTheoMaDauSach(String maDauSach) throws SQLException {
+        return findById(maDauSach);
+    }
+
+    /**
+     * Alias khớp Bảng 13 SRS: capNhatSoLuong(maDauSach, quantity)
+     */
+    public boolean capNhatSoLuong(String maDauSach, int quantity, Connection conn) throws SQLException {
+        return increaseStock(maDauSach, quantity, conn);
+    }
+
+    /**
+     * Alias khớp Bảng 13 và Bảng 17 SRS: updateSoLuongCon(maDauSach, quantity)
+     */
+    public boolean updateSoLuongCon(String maDauSach, int quantity, Connection conn) throws SQLException {
+        return increaseStock(maDauSach, quantity, conn);
     }
 }

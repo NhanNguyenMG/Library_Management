@@ -1,7 +1,7 @@
 package controller;
 
+import dto.BorrowResultDTO;
 import model.BorrowDetail;
-import model.BorrowResult;
 import model.BorrowSlip;
 import service.BorrowService;
 import service.SessionManager;
@@ -17,9 +17,9 @@ public class BorrowController {
      * Kiểm tra điều kiện mượn sách của sinh viên
      *
      * @param studentId mã số sinh viên quét từ thẻ
-     * @return BorrowResult kèm thông tin sinh viên và cảnh báo (nếu có)
+     * @return BorrowResultDTO kèm thông tin sinh viên và cảnh báo (nếu có)
      */
-    public BorrowResult handleCheckEligibility(String studentId) {
+    public BorrowResultDTO handleCheckEligibility(String studentId) {
         return borrowService.checkBorrowEligibility(studentId);
     }
 
@@ -29,9 +29,9 @@ public class BorrowController {
      * @param studentId      mã số sinh viên
      * @param bookId         mã đầu sách
      * @param pendingBookIds các mã đầu sách đã có trong danh sách chờ mượn
-     * @return BorrowResult kèm thông tin đầu sách nếu hợp lệ
+     * @return BorrowResultDTO kèm thông tin đầu sách nếu hợp lệ
      */
-    public BorrowResult handleAddBook(String studentId, String bookId, List<String> pendingBookIds) {
+    public BorrowResultDTO handleAddBook(String studentId, String bookId, List<String> pendingBookIds) {
         return borrowService.checkBookAvailability(studentId, bookId, pendingBookIds);
     }
 
@@ -40,13 +40,13 @@ public class BorrowController {
      *
      * @param studentId mã số sinh viên
      * @param bookIds   danh sách mã đầu sách trong danh sách chờ mượn
-     * @return BorrowResult kèm mã phiếu nếu thành công
+     * @return BorrowResultDTO kèm mã phiếu nếu thành công
      */
-    public BorrowResult handleBorrow(String studentId, List<String> bookIds) {
+    public BorrowResultDTO handleBorrow(String studentId, List<String> bookIds) {
         // Kiểm tra quyền hạn trước khi lập phiếu
         SessionManager session = SessionManager.getInstance();
         if (!session.isLibrarian() && !session.isManager()) {
-            return new BorrowResult(false, "Yêu cầu quyền hạn: Vui lòng đăng nhập bằng tài khoản Thủ thư hoặc Quản lý để lập phiếu mượn.");
+            return new BorrowResultDTO(false, "Yêu cầu quyền hạn: Vui lòng đăng nhập bằng tài khoản Thủ thư hoặc Quản lý để lập phiếu mượn.");
         }
 
         BorrowSlip borrowSlip = new BorrowSlip();

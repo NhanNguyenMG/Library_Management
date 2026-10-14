@@ -1,11 +1,11 @@
 package tests;
 
 import db.DBConnection;
-import model.DebtPaymentResult;
-import model.Payment;
-import model.Student;
 import repository.PaymentRepository;
 import repository.StudentRepository;
+import dto.DebtPaymentResultDTO;
+import model.Payment;
+import model.Student;
 import service.DebtService;
 
 import java.sql.Connection;
@@ -75,7 +75,7 @@ public class DebtServiceTest {
             }
 
             // Thực hiện thu nợ 50.000 VNĐ
-            DebtPaymentResult result = debtService.payDebt(testStudentId, 50000.0, "TIEN_MAT", "TT0001");
+            DebtPaymentResultDTO result = debtService.payDebt(testStudentId, 50000.0, "TIEN_MAT", "TT0001");
             if (!result.isSuccess() || result.getRemainingDebt() != 0.0) {
                 System.out.println("[ FAILED ] (Giao dịch thu nợ thất bại: " + result.getMessage() + ")");
                 return false;

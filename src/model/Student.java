@@ -12,7 +12,6 @@ public class Student {
 
     public Student() {}
 
-    // Bổ sung constructor có tham số
     public Student(String studentId, String fullName, String email, String username, String phone, int borrowedCount, double debtAmount, String type) {
         this.studentId = studentId;
         this.fullName = fullName;

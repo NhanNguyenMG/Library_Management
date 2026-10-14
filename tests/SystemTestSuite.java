@@ -1,6 +1,7 @@
 package tests;
 
 import db.DBConnection;
+import dto.*;
 import model.*;
 import service.*;
 
@@ -154,7 +155,7 @@ public class SystemTestSuite {
     private void runTC06() {
         try {
             Student s = new Student("SV_TEST_6", "SV TC06", "tc06@sv.edu.vn", "sv001", "0901", 4, 0.0, "THUONG");
-            BorrowResult res = borrowService.checkBookAvailability(s.getStudentId(), "DS0001", new ArrayList<>());
+            BorrowResultDTO res = borrowService.checkBookAvailability(s.getStudentId(), "DS0001", new ArrayList<>());
             boolean pass = res != null;
             printResult("TC-06", "Mượn sách thứ 5 (đang giữ 4 cuốn)", "Cho phép mượn kèm cảnh báo", pass);
         } catch (Exception e) {
@@ -241,7 +242,7 @@ public class SystemTestSuite {
             // Danh sách sách quét rỗng
             List<BorrowingItemDTO> emptyList = new ArrayList<>();
             Student s = new Student("SV0001", "Bảo", "b@sv.edu.vn", "sv001", "0901", 1, 0, "THUONG");
-            ReturnResult res = returnService.xacNhanTraSach(emptyList, "PM0001", s, "TT0001");
+            ReturnResultDTO res = returnService.xacNhanTraSach(emptyList, "PM0001", s, "TT0001");
             boolean pass = !res.isSuccess();
             printResult("TC-12", "Chưa quét sách hoặc sách không khớp", "Chặn xác nhận trả sách", pass);
         } catch (Exception e) {

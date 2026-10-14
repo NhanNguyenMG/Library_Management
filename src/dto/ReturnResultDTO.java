@@ -1,16 +1,19 @@
-package model;
+package dto;
 
-public class ReturnResult {
+/**
+ * Data Transfer Object (DTO) chứa kết quả xử lý nghiệp vụ trả sách và tiền phạt
+ * truyền tải từ ReturnService sang ReturnController và ReturnBookForm.
+ */
+public class ReturnResultDTO {
     private boolean isSuccess;
     private String message;
     private String slipId;
     private double fineAmount;
     private long lateDays;
 
-    public ReturnResult() {}
+    public ReturnResultDTO() {}
 
-    // Bổ sung constructor có tham số
-    public ReturnResult(boolean isSuccess, String message, String slipId, double fineAmount, long lateDays) {
+    public ReturnResultDTO(boolean isSuccess, String message, String slipId, double fineAmount, long lateDays) {
         this.isSuccess = isSuccess;
         this.message = message;
         this.slipId = slipId;
@@ -19,7 +22,7 @@ public class ReturnResult {
     }
 
     public boolean isSuccess() { return isSuccess; }
-    public void setSuccess(boolean isSuccess) { this.isSuccess = isSuccess; }
+    public void setSuccess(boolean success) { this.isSuccess = success; }
     public String getMessage() { return message; }
     public void setMessage(String message) { this.message = message; }
     public String getSlipId() { return slipId; }

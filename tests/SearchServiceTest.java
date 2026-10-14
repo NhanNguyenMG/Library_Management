@@ -31,9 +31,9 @@ public class SearchServiceTest {
      */
     public boolean testSqlInjectionSafe() {
         try {
-            // Chuỗi tấn công SQL Injection kinh điển
+            // Chuỗi kiểm thử phòng chống tấn công SQL Injection tiêu chuẩn
             List<Book> books = searchService.searchBooks("' OR 1=1 --");
-            // Chuỗi không có trong DB nên danh sách trả về phải rỗng và không bị crash
+            // Tham số không hợp lệ, hệ thống phải xử lý an toàn và trả về danh sách rỗng
             return books != null && books.isEmpty();
         } catch (Exception e) {
             System.err.println("[ERROR] [SearchServiceTest.testSqlInjectionSafe] Ngoại lệ kiểm thử: " + e.getMessage());

@@ -1,5 +1,9 @@
-package model;
+package dto;
 
+/**
+ * Data Transfer Object (DTO) đại diện hóa đơn / phiếu nộp tiền phạt
+ * phục vụ in hóa đơn hoặc hiển thị thông báo thu tiền.
+ */
 public class FineInvoiceDTO {
     private String slipId;
     private String studentId;

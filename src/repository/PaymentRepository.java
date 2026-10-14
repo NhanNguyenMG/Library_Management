@@ -12,7 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Repository xử lý dữ liệu thanh toán và tiền phạt
+ * =============================================================================
+ * REPOSITORY TRUY XUẤT DỮ LIỆU THANH TOÁN & TIỀN PHẠT (BẢNG thanh_toan)
+ * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
+ * Ánh xạ với tài liệu SRS (Bảng 12, 13, 17 ThanhToanRepository) và Báo cáo cuối kỳ.
+ * =============================================================================
  */
 public class PaymentRepository {
 
@@ -47,7 +51,7 @@ public class PaymentRepository {
      *
      * @param payment đối tượng Payment cần lưu
      * @param conn kết nối Transaction đang mở
-     * @throws SQLException nếu ghi CSDL thất bại để rollback
+     * @throws SQLException nếu ghi CSDL thất bại
      */
     public void save(Payment payment, Connection conn) throws SQLException {
         String sql = """
@@ -70,14 +74,6 @@ public class PaymentRepository {
 
     /**
      * Tạo nhanh bản ghi phạt và lưu vào CSDL trong Transaction.
-     *
-     * @param slipId mã phiếu mượn
-     * @param fineAmount số tiền phạt
-     * @param method phương thức thanh toán (TIEN_MAT, CHUYEN_KHOAN, VNPAY, CASH)
-     * @param status trạng thái (CHUA_THANH_TOAN, DA_THANH_TOAN)
-     * @param conn kết nối Transaction đang mở
-     * @return đối tượng Payment đã được lưu
-     * @throws SQLException nếu ghi thất bại
      */
     public Payment createFineRecord(String slipId, double fineAmount, String method, String status, Connection conn) throws SQLException {
         String txId = generateNextTransactionId(conn);
@@ -89,13 +85,6 @@ public class PaymentRepository {
 
     /**
      * Lưu mới hoặc cập nhật bản ghi phạt nếu phiếu mượn đã có giao dịch trước đó.
-     *
-     * @param slipId mã phiếu mượn
-     * @param fineAmount số tiền phạt phát sinh
-     * @param method phương thức thanh toán
-     * @param status trạng thái (DA_THANH_TOAN hoặc CHUA_THANH_TOAN)
-     * @param conn kết nối Transaction
-     * @return Payment đã được lưu hoặc cập nhật
      */
     public Payment saveOrUpdateFineRecord(String slipId, double fineAmount, String method, String status, Connection conn) throws SQLException {
         Payment existing = findBySlipId(slipId, conn);
@@ -149,11 +138,7 @@ public class PaymentRepository {
     }
 
     /**
-     * Tìm thông tin thanh toán theo mã phiếu mượn.
-     *
-     * @param slipId mã phiếu mượn
-     * @return Payment nếu tìm thấy, null nếu chưa có bản ghi thanh toán
-     * @throws SQLException nếu xảy ra lỗi truy vấn
+     * Tìm thông tin thanh toán theo mã phiếu mượn (kết nối tự nạp).
      */
     public Payment findBySlipId(String slipId) throws SQLException {
         Connection conn = DBConnection.getInstance().getConnection();
@@ -162,11 +147,6 @@ public class PaymentRepository {
 
     /**
      * Tìm danh sách các khoản thanh toán phạt chưa thanh toán (CHUA_THANH_TOAN) của một sinh viên.
-     *
-     * @param studentId mã số sinh viên
-     * @param conn kết nối Transaction đang mở
-     * @return danh sách Payment chưa thanh toán
-     * @throws SQLException nếu truy vấn CSDL thất bại
      */
     public List<Payment> findUnpaidPaymentsByStudentId(String studentId, Connection conn) throws SQLException {
         List<Payment> list = new ArrayList<>();
@@ -204,12 +184,24 @@ public class PaymentRepository {
     }
 
     /**
-     * Cập nhật trạng thái bản ghi thanh toán sang DA_THANH_TOAN khi thu nợ.
+     * Cập nhật số tiền còn nợ của một bản ghi thanh toán (khi sinh viên trả nợ một phần).
      *
      * @param transactionId mã giao dịch
-     * @param paymentMethod phương thức thanh toán (TIEN_MAT, CHUYEN_KHOAN)
+     * @param newAmount số tiền nợ mới sau khi trừ
      * @param conn kết nối Transaction
      * @throws SQLException nếu cập nhật thất bại
+     */
+    public void updateRemainingAmount(String transactionId, double newAmount, Connection conn) throws SQLException {
+        String sql = "UPDATE thanh_toan SET so_tien = ? WHERE ma_giao_dich = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setDouble(1, newAmount);
+            ps.setString(2, transactionId);
+            ps.executeUpdate();
+        }
+    }
+
+    /**
+     * Cập nhật trạng thái bản ghi thanh toán sang DA_THANH_TOAN khi thu nợ.
      */
     public void markAsPaid(String transactionId, String paymentMethod, Connection conn) throws SQLException {
         String sql = "UPDATE thanh_toan SET trang_thai = 'DA_THANH_TOAN', phuong_thuc = ?, thoi_gian = ? WHERE ma_giao_dich = ?";
@@ -219,5 +211,23 @@ public class PaymentRepository {
             ps.setString(3, transactionId);
             ps.executeUpdate();
         }
+    }
+
+    /**
+     * Cập nhật trạng thái bản ghi thanh toán sang trạng thái chỉ định.
+     */
+    public void updatePaymentStatus(String transactionId, String status, String paymentMethod, String librarianId, Connection conn) throws SQLException {
+        markAsPaid(transactionId, paymentMethod, conn);
+    }
+
+    // =========================================================================
+    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
+    // =========================================================================
+
+    /**
+     * Alias khớp Bảng 13 và Bảng 17 SRS: taoKhoanPhat(maPhieu, soTienPhat, lyDo)
+     */
+    public Payment taoKhoanPhat(String maPhieu, double soTienPhat, String lyDo, Connection conn) throws SQLException {
+        return createFineRecord(maPhieu, soTienPhat, "TIEN_MAT", "CHUA_THANH_TOAN", conn);
     }
 }

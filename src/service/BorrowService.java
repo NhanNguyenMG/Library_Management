@@ -1,22 +1,23 @@
 package service;
 
 import db.DBConnection;
-import model.Book;
-import model.BorrowDetail;
-import model.BorrowResult;
-import model.BorrowSlip;
-import model.Student;
 import repository.BookRepository;
 import repository.BorrowDetailRepository;
 import repository.BorrowSlipRepository;
 import repository.StudentRepository;
+import dto.BorrowResultDTO;
+import model.Book;
+import model.BorrowDetail;
+import model.BorrowSlip;
+import model.Student;
+import util.FormatUtil;
+import util.ValidationUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 public class BorrowService {
@@ -43,33 +44,33 @@ public class BorrowService {
      * Kiểm tra điều kiện mượn sách của sinh viên (hạn mức, nợ phạt, trạng thái thẻ)
      *
      * @param studentId mã số sinh viên quét từ thẻ
-     * @return BorrowResult kết quả kiểm tra
+     * @return BorrowResultDTO kết quả kiểm tra
      */
-    public BorrowResult checkBorrowEligibility(String studentId) {
+    public BorrowResultDTO checkBorrowEligibility(String studentId) {
         if (studentId == null || studentId.trim().isEmpty()) {
-            return new BorrowResult(false, MSG_INVALID_CARD);
+            return new BorrowResultDTO(false, MSG_INVALID_CARD);
         }
 
         try {
             // Kiểm tra thẻ tồn tại và không bị khóa
             Student student = studentRepository.findByStudentId(studentId);
             if (student == null || studentRepository.isAccountLocked(studentId)) {
-                return new BorrowResult(false, MSG_INVALID_CARD);
+                return new BorrowResultDTO(false, MSG_INVALID_CARD);
             }
 
             // Kiểm tra hạn mức mượn
             if (student.getBorrowedCount() >= MAX_BOOKS_ALLOWED) {
-                return new BorrowResult(false, MSG_OVER_LIMIT);
+                return new BorrowResultDTO(false, MSG_OVER_LIMIT);
             }
 
             // Kiểm tra nợ phạt chưa thanh toán
             if (student.getDebtAmount() > 0) {
-                return new BorrowResult(false, "Sinh viên còn nợ tiền phạt " + formatMoney(student.getDebtAmount())
+                return new BorrowResultDTO(false, "Sinh viên còn nợ tiền phạt " + FormatUtil.formatMoney(student.getDebtAmount())
                         + ". Vui lòng hoàn tất thanh toán trước khi mượn sách.");
             }
 
             // Đủ điều kiện, cảnh báo nếu chỉ còn 1 suất mượn
-            BorrowResult result = new BorrowResult(true, "Tài khoản sinh viên đủ điều kiện mượn sách");
+            BorrowResultDTO result = new BorrowResultDTO(true, "Tài khoản sinh viên đủ điều kiện mượn sách");
             result.setStudent(student);
             if (student.getBorrowedCount() == MAX_BOOKS_ALLOWED - 1) {
                 result.setWarning(MSG_NEAR_LIMIT);
@@ -77,7 +78,7 @@ public class BorrowService {
             return result;
 
         } catch (SQLException e) {
-            return new BorrowResult(false, MSG_SYSTEM_ERROR);
+            return new BorrowResultDTO(false, MSG_SYSTEM_ERROR);
         }
     }
 
@@ -87,45 +88,45 @@ public class BorrowService {
      * @param studentId      mã số sinh viên đã qua kiểm tra điều kiện
      * @param bookId         mã đầu sách vừa quét
      * @param pendingBookIds các mã đầu sách đã có trong danh sách chờ mượn
-     * @return BorrowResult kết quả kiểm tra
+     * @return BorrowResultDTO kết quả kiểm tra
      */
-    public BorrowResult checkBookAvailability(String studentId, String bookId, List<String> pendingBookIds) {
+    public BorrowResultDTO checkBookAvailability(String studentId, String bookId, List<String> pendingBookIds) {
         if (bookId == null || bookId.trim().isEmpty()) {
-            return new BorrowResult(false, "Mã đầu sách không được để trống");
+            return new BorrowResultDTO(false, "Mã đầu sách không được để trống");
         }
 
         String scannedBookId = bookId.trim();
         if (pendingBookIds != null && pendingBookIds.contains(scannedBookId)) {
-            return new BorrowResult(false, MSG_DUPLICATE_BOOK);
+            return new BorrowResultDTO(false, MSG_DUPLICATE_BOOK);
         }
 
         try {
             Book book = bookRepository.findById(scannedBookId);
             if (book == null) {
-                return new BorrowResult(false, "Không tìm thấy đầu sách với mã: " + scannedBookId);
+                return new BorrowResultDTO(false, "Không tìm thấy đầu sách với mã: " + scannedBookId);
             }
 
             // Kiểm tra tồn kho đầu sách
             if (book.getStockQuantity() <= 0) {
-                return new BorrowResult(false, MSG_OUT_OF_STOCK);
+                return new BorrowResultDTO(false, MSG_OUT_OF_STOCK);
             }
 
             // Kiểm tra tổng số sách vượt hạn mức
             Student student = studentRepository.findByStudentId(studentId);
             if (student == null) {
-                return new BorrowResult(false, MSG_INVALID_CARD);
+                return new BorrowResultDTO(false, MSG_INVALID_CARD);
             }
             int pendingCount = (pendingBookIds == null) ? 0 : pendingBookIds.size();
             if (student.getBorrowedCount() + pendingCount + QUANTITY_PER_BOOK > MAX_BOOKS_ALLOWED) {
-                return new BorrowResult(false, MSG_OVER_LIMIT);
+                return new BorrowResultDTO(false, MSG_OVER_LIMIT);
             }
 
-            BorrowResult result = new BorrowResult(true, "Đã thêm đầu sách vào danh sách chờ mượn");
+            BorrowResultDTO result = new BorrowResultDTO(true, "Đã thêm đầu sách vào danh sách chờ mượn");
             result.setBook(book);
             return result;
 
         } catch (SQLException e) {
-            return new BorrowResult(false, MSG_SYSTEM_ERROR);
+            return new BorrowResultDTO(false, MSG_SYSTEM_ERROR);
         }
     }
 
@@ -134,15 +135,15 @@ public class BorrowService {
      *
      * @param borrowSlip    thông tin phiếu mượn
      * @param borrowDetails danh sách chi tiết, mỗi dòng đã có bookId
-     * @return BorrowResult kết quả tạo phiếu
+     * @return BorrowResultDTO kết quả tạo phiếu
      */
-    public BorrowResult createBorrowSlip(BorrowSlip borrowSlip, List<BorrowDetail> borrowDetails) {
+    public BorrowResultDTO createBorrowSlip(BorrowSlip borrowSlip, List<BorrowDetail> borrowDetails) {
         if (borrowDetails == null || borrowDetails.isEmpty()) {
-            return new BorrowResult(false, MSG_EMPTY_LIST);
+            return new BorrowResultDTO(false, MSG_EMPTY_LIST);
         }
 
         // Kiểm tra lại điều kiện mượn ngay trước khi lưu
-        BorrowResult eligibility = checkBorrowEligibility(borrowSlip.getStudentId());
+        BorrowResultDTO eligibility = checkBorrowEligibility(borrowSlip.getStudentId());
         if (!eligibility.isSuccess()) {
             return eligibility;
         }
@@ -152,14 +153,14 @@ public class BorrowService {
         Set<String> uniqueBookIds = new HashSet<>();
         for (BorrowDetail borrowDetail : borrowDetails) {
             if (!uniqueBookIds.add(borrowDetail.getBookId())) {
-                return new BorrowResult(false, MSG_DUPLICATE_BOOK + ": " + borrowDetail.getBookId());
+                return new BorrowResultDTO(false, MSG_DUPLICATE_BOOK + ": " + borrowDetail.getBookId());
             }
         }
 
         // Kiểm tra tổng số sách sau khi mượn không vượt hạn mức
         int newBookCount = borrowDetails.size() * QUANTITY_PER_BOOK;
         if (student.getBorrowedCount() + newBookCount > MAX_BOOKS_ALLOWED) {
-            return new BorrowResult(false, MSG_OVER_LIMIT);
+            return new BorrowResultDTO(false, MSG_OVER_LIMIT);
         }
 
         // Kiểm tra lại tồn kho từng đầu sách
@@ -167,11 +168,11 @@ public class BorrowService {
             for (BorrowDetail borrowDetail : borrowDetails) {
                 Book book = bookRepository.findById(borrowDetail.getBookId());
                 if (book == null || book.getStockQuantity() < QUANTITY_PER_BOOK) {
-                    return new BorrowResult(false, MSG_OUT_OF_STOCK + ": " + borrowDetail.getBookId());
+                    return new BorrowResultDTO(false, MSG_OUT_OF_STOCK + ": " + borrowDetail.getBookId());
                 }
             }
         } catch (SQLException e) {
-            return new BorrowResult(false, MSG_SYSTEM_ERROR);
+            return new BorrowResultDTO(false, MSG_SYSTEM_ERROR);
         }
 
         // Thực hiện lưu giao dịch trong Transaction
@@ -209,27 +210,20 @@ public class BorrowService {
             conn.commit(); // Cam kết lưu vào DB
 
             // Thông báo kết quả tạo phiếu thành công
-            BorrowResult result = new BorrowResult(true, "Tạo phiếu mượn " + slipId + " thành công.");
+            BorrowResultDTO result = new BorrowResultDTO(true, "Tạo phiếu mượn " + slipId + " thành công.");
             result.setSlipId(slipId);
             result.setStudent(student);
             return result;
 
         } catch (Exception e) {
             if (conn != null) {
-                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); } // Lỗi -> Hoàn tác toàn bộ
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
-            return new BorrowResult(false, "Lỗi hệ thống trong quá trình lưu phiếu mượn: " + e.getMessage());
+            return new BorrowResultDTO(false, "Lỗi hệ thống trong quá trình lưu phiếu mượn: " + e.getMessage());
         } finally {
             if (conn != null) {
                 try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
             }
         }
-    }
-
-    /**
-     * Định dạng số tiền theo kiểu Việt Nam, ví dụ 30000 -> "30.000 đ".
-     */
-    private String formatMoney(double amount) {
-        return String.format(Locale.forLanguageTag("vi-VN"), "%,.0f đ", amount);
     }
 }

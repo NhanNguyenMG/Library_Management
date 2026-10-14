@@ -1,9 +1,11 @@
-package model;
+package dto;
 
 import java.sql.Timestamp;
 
 /**
- * Thông tin chi tiết sách đang mượn hiển thị trong bảng trả sách
+ * Data Transfer Object (DTO) mang thông tin chi tiết tài liệu đang mượn
+ * phục vụ hiển thị động trên bảng trả sách (UC-05).
+ * Tổng hợp dữ liệu từ 3 bảng: dau_sach, phieu_muon, chi_tiet_phieu_muon.
  */
 public class BorrowingItemDTO {
 

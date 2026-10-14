@@ -72,10 +72,10 @@ public class ReturnServiceTest {
         Timestamp now = Timestamp.valueOf("2026-10-10 10:00:00");
         Timestamp due = Timestamp.valueOf("2026-10-08 10:00:00"); // Trễ 2 ngày
 
-        java.util.List<model.BorrowingItemDTO> items = new java.util.ArrayList<>();
-        model.BorrowingItemDTO item1 = new model.BorrowingItemDTO("PM0001", "MS0001", "Sách 1", due, 1);
+        java.util.List<dto.BorrowingItemDTO> items = new java.util.ArrayList<>();
+        dto.BorrowingItemDTO item1 = new dto.BorrowingItemDTO("PM0001", "MS0001", "Sách 1", due, 1);
         item1.setStatus("Đã quét");
-        model.BorrowingItemDTO item2 = new model.BorrowingItemDTO("PM0001", "MS0002", "Sách 2", due, 1);
+        dto.BorrowingItemDTO item2 = new dto.BorrowingItemDTO("PM0001", "MS0002", "Sách 2", due, 1);
         item2.setStatus("Đã quét");
         items.add(item1);
         items.add(item2);
@@ -94,10 +94,10 @@ public class ReturnServiceTest {
         Timestamp due1 = Timestamp.valueOf("2026-10-05 10:00:00"); // Trễ 5 ngày
         Timestamp due2 = Timestamp.valueOf("2026-10-09 10:00:00"); // Trễ 1 ngày
 
-        java.util.List<model.BorrowingItemDTO> items = new java.util.ArrayList<>();
-        model.BorrowingItemDTO item1 = new model.BorrowingItemDTO("PM0001", "MS0001", "Sách 1", due1, 1);
+        java.util.List<dto.BorrowingItemDTO> items = new java.util.ArrayList<>();
+        dto.BorrowingItemDTO item1 = new dto.BorrowingItemDTO("PM0001", "MS0001", "Sách 1", due1, 1);
         item1.setStatus("Đã quét");
-        model.BorrowingItemDTO item2 = new model.BorrowingItemDTO("PM0001", "MS0002", "Sách 2", due2, 1);
+        dto.BorrowingItemDTO item2 = new dto.BorrowingItemDTO("PM0001", "MS0002", "Sách 2", due2, 1);
         item2.setStatus("Đã quét");
         items.add(item1);
         items.add(item2);

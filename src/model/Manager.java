@@ -8,7 +8,6 @@ public class Manager extends Account {
 
     public Manager() { super(); }
 
-    // Bổ sung constructor có tham số
     public Manager(String username, String password, String status, String managerId, String fullName, String email, String title) {
         super(username, password, "MANAGER", status);
         this.managerId = managerId;

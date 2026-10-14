@@ -1,6 +1,6 @@
 package controller;
 
-import model.DebtPaymentResult;
+import dto.DebtPaymentResultDTO;
 import model.Payment;
 import model.Student;
 import service.DebtService;
@@ -22,21 +22,21 @@ public class DebtController {
     /**
      * Tra cứu thông tin hồ sơ và số tiền nợ của sinh viên
      */
-    public Student layThongTinNoSinhVien(String studentId) throws Exception {
+    public Student layThongTinNoSinhVien(String studentId) {
         return debtService.getStudentDebtInfo(studentId);
     }
 
     /**
      * Lấy danh sách các khoản phạt chưa thanh toán của sinh viên
      */
-    public List<Payment> layDanhSachKhoanPhatChuaTra(String studentId) throws Exception {
+    public List<Payment> layDanhSachKhoanPhatChuaTra(String studentId) {
         return debtService.getUnpaidFines(studentId);
     }
 
     /**
      * Xác nhận thu nợ tiền phạt cho sinh viên
      */
-    public DebtPaymentResult thanhToanNo(String studentId, double amountToPay, String paymentMethod, String librarianId) {
+    public DebtPaymentResultDTO thanhToanNo(String studentId, double amountToPay, String paymentMethod, String librarianId) {
         return debtService.payDebt(studentId, amountToPay, paymentMethod, librarianId);
     }
 }

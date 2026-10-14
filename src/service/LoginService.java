@@ -1,31 +1,37 @@
 package service;
 
-import model.Account;
 import repository.AccountRepository;
+import exception.AuthenticationException;
+import model.Account;
+import util.ValidationUtil;
 
 public class LoginService {
 
     private final AccountRepository accountRepo = new AccountRepository();
 
     /**
-     * Kiểm tra thông tin đăng nhập của người dùng
+     * Kiểm tra thông tin đăng nhập của người dùng.
+     * Áp dụng ValidationUtil và AuthenticationException theo chuẩn SRP như dự án phoneStore.
      */
-    public Account login(String username, String password) throws Exception {
-        Account account = accountRepo.findByUsername(username);
+    public Account login(String username, String password) throws AuthenticationException {
+        // Kiểm tra tính hợp lệ của dữ liệu đầu vào
+        ValidationUtil.validateCredentials(username, password);
+
+        Account account = accountRepo.findByUsername(username.trim());
 
         // Kiểm tra xem tài khoản có tồn tại không
         if (account == null) {
-            throw new Exception("Tài khoản không tồn tại trong hệ thống.");
+            throw new AuthenticationException("Tài khoản không tồn tại trong hệ thống.");
         }
 
         // Kiểm tra mật khẩu
         if (!account.getPassword().equals(password)) {
-            throw new Exception("Mật khẩu xác thực không chính xác.");
+            throw new AuthenticationException("Mật khẩu xác thực không chính xác.");
         }
 
         // Kiểm tra trạng thái tài khoản
         if ("LOCKED".equalsIgnoreCase(account.getStatus()) || "INACTIVE".equalsIgnoreCase(account.getStatus())) {
-            throw new Exception("Tài khoản đã bị khóa hoặc ngừng hoạt động.");
+            throw new AuthenticationException("Tài khoản đã bị khóa hoặc ngừng hoạt động.");
         }
 
         // Tích hợp với SessionManager để lưu thông tin phiên làm việc

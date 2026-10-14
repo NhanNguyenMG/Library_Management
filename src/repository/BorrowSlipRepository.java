@@ -11,6 +11,13 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * =============================================================================
+ * REPOSITORY TRUY XUẤT DỮ LIỆU PHIẾU MƯỢN (BẢNG phieu_muon)
+ * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
+ * Ánh xạ với tài liệu SRS (Bảng 12, 13, 17 PhieuMuonRepository) và Báo cáo cuối kỳ.
+ * =============================================================================
+ */
 public class BorrowSlipRepository {
 
     private static final String SLIP_ID_PREFIX = "PM";
@@ -20,11 +27,11 @@ public class BorrowSlipRepository {
             "SELECT ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te FROM phieu_muon ";
 
     /**
-     * 1. Sinh mã phiếu mượn tiếp theo theo định dạng PMxxxx (ví dụ: PM0003 -> PM0004).
-     * Gọi bên trong Transaction tạo phiếu, dùng chung Connection với hàm save().
+     * Sinh mã phiếu mượn tiếp theo theo định dạng PMxxxx (ví dụ: PM0003 -> PM0004).
      *
-     * @param conn kết nối đang mở Transaction (do Service quản lý)
+     * @param conn kết nối đang mở Transaction
      * @return mã phiếu mới chưa tồn tại trong bảng phieu_muon
+     * @throws SQLException nếu truy vấn thất bại
      */
     public String generateNextSlipId(Connection conn) throws SQLException {
         String sql = "SELECT MAX(CAST(SUBSTRING(ma_phieu, ?) AS UNSIGNED)) AS max_number "
@@ -35,7 +42,7 @@ public class BorrowSlipRepository {
             try (ResultSet rs = ps.executeQuery()) {
                 long maxNumber = 0;
                 if (rs.next()) {
-                    maxNumber = rs.getLong("max_number"); // Bảng rỗng -> NULL -> 0
+                    maxNumber = rs.getLong("max_number");
                 }
                 return String.format("%s%0" + SLIP_ID_NUMBER_LENGTH + "d", SLIP_ID_PREFIX, maxNumber + 1);
             }
@@ -43,11 +50,11 @@ public class BorrowSlipRepository {
     }
 
     /**
-     * 2. Lưu phiếu mượn mới vào bảng phieu_muon (phiếu mới luôn có ngay_tra_thuc_te = NULL).
+     * Lưu phiếu mượn mới vào bảng phieu_muon (phiếu mới luôn có ngay_tra_thuc_te = NULL).
      *
-     * @param borrowSlip phiếu mượn đã có đủ slipId, studentId, librarianId, borrowDate, dueDate
-     * @param conn       kết nối đang mở Transaction (do Service quản lý)
-     * @throws SQLException nếu ghi thất bại, để Service thực hiện rollback
+     * @param borrowSlip phiếu mượn đã có đủ thông tin
+     * @param conn kết nối đang mở Transaction
+     * @throws SQLException nếu ghi thất bại
      */
     public void save(BorrowSlip borrowSlip, Connection conn) throws SQLException {
         String sql = "INSERT INTO phieu_muon (ma_phieu, mssv, ma_nhan_vien, ngay_muon, han_tra, ngay_tra_thuc_te) "
@@ -66,14 +73,15 @@ public class BorrowSlipRepository {
     }
 
     /**
-     * 3. Tìm phiếu mượn theo mã phiếu (dùng để hiển thị lại phiếu vừa tạo).
+     * Tìm phiếu mượn theo mã phiếu.
      *
      * @param slipId mã phiếu mượn
      * @return BorrowSlip nếu tìm thấy, null nếu không tồn tại
+     * @throws SQLException nếu lỗi truy vấn
      */
     public BorrowSlip findById(String slipId) throws SQLException {
         String sql = SELECT_SLIP_COLUMNS + "WHERE ma_phieu = ?";
-        Connection conn = DBConnection.getInstance().getConnection(); // Không đóng: kết nối dùng chung
+        Connection conn = DBConnection.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, slipId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -83,18 +91,17 @@ public class BorrowSlipRepository {
     }
 
     /**
-     * 4. Đếm số phiếu mượn đã quá hạn mà sinh viên chưa trả.
-     * Thời điểm so sánh được truyền vào (thay vì dùng NOW() trong SQL)
-     * để có thể kiểm thử với dữ liệu mẫu ở các mốc thời gian khác nhau.
+     * Đếm số phiếu mượn đã quá hạn mà sinh viên chưa trả.
      *
      * @param studentId mã số sinh viên (mssv)
-     * @param checkTime thời điểm kiểm tra (thường là thời điểm hiện tại)
+     * @param checkTime thời điểm kiểm tra
      * @return số phiếu quá hạn chưa trả, 0 nếu không có
+     * @throws SQLException nếu lỗi truy vấn
      */
     public int countOverdueSlipsByStudentId(String studentId, Timestamp checkTime) throws SQLException {
         String sql = "SELECT COUNT(*) AS overdue_count FROM phieu_muon "
                 + "WHERE mssv = ? AND ngay_tra_thuc_te IS NULL AND han_tra < ?";
-        Connection conn = DBConnection.getInstance().getConnection(); // Không đóng: kết nối dùng chung
+        Connection conn = DBConnection.getInstance().getConnection();
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, studentId);
             ps.setTimestamp(2, checkTime);
@@ -109,6 +116,7 @@ public class BorrowSlipRepository {
      *
      * @param studentId mã số sinh viên
      * @return danh sách BorrowSlip chưa trả, sắp xếp theo ngày mượn giảm dần
+     * @throws SQLException nếu lỗi truy vấn
      */
     public List<BorrowSlip> findActiveSlipsByStudentId(String studentId) throws SQLException {
         String sql = SELECT_SLIP_COLUMNS + "WHERE mssv = ? AND ngay_tra_thuc_te IS NULL ORDER BY ngay_muon DESC";
@@ -130,6 +138,7 @@ public class BorrowSlipRepository {
      *
      * @param studentId mã số sinh viên
      * @return BorrowSlip chưa trả gần nhất, hoặc null nếu không có
+     * @throws SQLException nếu lỗi truy vấn
      */
     public BorrowSlip findActiveSlipByStudentId(String studentId) throws SQLException {
         List<BorrowSlip> activeSlips = findActiveSlipsByStudentId(studentId);
@@ -154,10 +163,31 @@ public class BorrowSlipRepository {
         }
     }
 
+    // =========================================================================
+    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
+    // =========================================================================
 
     /**
-     * Ánh xạ một dòng ResultSet của bảng phieu_muon sang đối tượng BorrowSlip.
+     * Alias khớp Bảng 13 SRS: findSachDangMuonByMaThe(String maTheSV)
      */
+    public List<BorrowSlip> findSachDangMuonByMaThe(String maTheSV) throws SQLException {
+        return findActiveSlipsByStudentId(maTheSV);
+    }
+
+    /**
+     * Alias khớp Bảng 13 và Bảng 17 SRS: updateNgayTra(String maPhieu, Timestamp ngayTraThucTe, Connection conn)
+     */
+    public boolean updateNgayTra(String maPhieu, Timestamp ngayTraThucTe, Connection conn) throws SQLException {
+        return updateReturnDate(maPhieu, ngayTraThucTe, conn);
+    }
+
+    /**
+     * Alias khớp Bảng 13 SRS: luuPhieuMuon(BorrowSlip duLieuPhieuMuon, Connection conn)
+     */
+    public void luuPhieuMuon(BorrowSlip duLieuPhieuMuon, Connection conn) throws SQLException {
+        save(duLieuPhieuMuon, conn);
+    }
+
     private BorrowSlip mapRowToBorrowSlip(ResultSet rs) throws SQLException {
         BorrowSlip borrowSlip = new BorrowSlip();
         borrowSlip.setSlipId(rs.getString("ma_phieu"));

@@ -1,14 +1,16 @@
 package service;
 
 import db.DBConnection;
-import model.DebtPaymentResult;
-import model.Payment;
-import model.Student;
 import repository.PaymentRepository;
 import repository.StudentRepository;
+import dto.DebtPaymentResultDTO;
+import exception.BusinessException;
+import exception.RepositoryException;
+import model.Payment;
+import model.Student;
+import util.ValidationUtil;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -30,25 +32,29 @@ public class DebtService {
     /**
      * Tra cứu thông tin sinh viên và số nợ phạt hiện tại.
      */
-    public Student getStudentDebtInfo(String studentId) throws Exception {
-        if (studentId == null || studentId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã thẻ sinh viên không được để trống.");
+    public Student getStudentDebtInfo(String studentId) {
+        ValidationUtil.validateStudentId(studentId);
+        try {
+            Student student = studentRepo.findByStudentId(studentId.trim());
+            if (student == null) {
+                throw new BusinessException("Không tìm thấy thông tin sinh viên với mã: " + studentId);
+            }
+            return student;
+        } catch (SQLException e) {
+            throw new RepositoryException("Lỗi truy vấn CSDL hồ sơ sinh viên: " + e.getMessage(), e);
         }
-        Student student = studentRepo.findByStudentId(studentId.trim());
-        if (student == null) {
-            throw new Exception("Không tìm thấy thông tin sinh viên với mã: " + studentId);
-        }
-        return student;
     }
 
     /**
      * Lấy danh sách các khoản phạt chưa thanh toán của sinh viên.
      */
-    public List<Payment> getUnpaidFines(String studentId) throws Exception {
-        if (studentId == null || studentId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã thẻ sinh viên không được để trống.");
+    public List<Payment> getUnpaidFines(String studentId) {
+        ValidationUtil.validateStudentId(studentId);
+        try {
+            return paymentRepo.findUnpaidPaymentsByStudentId(studentId.trim());
+        } catch (SQLException e) {
+            throw new RepositoryException("Lỗi truy vấn CSDL danh sách khoản nợ phạt: " + e.getMessage(), e);
         }
-        return paymentRepo.findUnpaidPaymentsByStudentId(studentId.trim());
     }
 
     /**
@@ -56,16 +62,16 @@ public class DebtService {
      *
      * @param studentId mã số sinh viên
      * @param amountToPay số tiền thu nợ
-     * @param paymentMethod phương thức thanh toán (TIEN_MAT, CHUYEN_KHOAN, ...)
+     * @param paymentMethod phương thức thanh toán (TIEN_MAT, CHUYEN_KHOAN, ONLINE...)
      * @param librarianId mã thủ thư thu tiền
-     * @return DebtPaymentResult kết quả giao dịch thu nợ
+     * @return DebtPaymentResultDTO kết quả giao dịch thu nợ
      */
-    public DebtPaymentResult payDebt(String studentId, double amountToPay, String paymentMethod, String librarianId) {
+    public DebtPaymentResultDTO payDebt(String studentId, double amountToPay, String paymentMethod, String librarianId) {
         if (studentId == null || studentId.trim().isEmpty()) {
-            return new DebtPaymentResult(false, "Mã thẻ sinh viên không được để trống.", studentId, 0, 0);
+            return new DebtPaymentResultDTO(false, "Mã thẻ sinh viên không được để trống.", studentId, 0, 0);
         }
         if (amountToPay <= 0) {
-            return new DebtPaymentResult(false, "Số tiền thanh toán phải lớn hơn 0 VNĐ.", studentId, 0, 0);
+            return new DebtPaymentResultDTO(false, "Số tiền thanh toán phải lớn hơn 0 VNĐ.", studentId, 0, 0);
         }
 
         Connection conn = null;
@@ -75,12 +81,12 @@ public class DebtService {
 
             Student student = studentRepo.findByStudentId(studentId.trim());
             if (student == null) {
-                return new DebtPaymentResult(false, "Không tìm thấy thông tin sinh viên có mã: " + studentId, studentId, 0, 0);
+                return new DebtPaymentResultDTO(false, "Không tìm thấy thông tin sinh viên có mã: " + studentId, studentId, 0, 0);
             }
 
             double currentDebt = student.getDebtAmount();
             if (currentDebt <= 0) {
-                return new DebtPaymentResult(false, "Sinh viên " + student.getFullName() + " hiện không có nợ tiền phạt cần thanh toán.", studentId, 0, 0);
+                return new DebtPaymentResultDTO(false, "Sinh viên " + student.getFullName() + " hiện không có nợ tiền phạt cần thanh toán.", studentId, 0, 0);
             }
 
             // Số tiền thực thu không được vượt quá số nợ hiện tại
@@ -99,31 +105,29 @@ public class DebtService {
                 }
                 if (remainingToAllocate >= p.getAmount()) {
                     // Trả hết khoản phạt này
-                    paymentRepo.markAsPaid(p.getTransactionId(), paymentMethod, conn);
+                    paymentRepo.updatePaymentStatus(p.getPaymentId(), "DA_THANH_TOAN", paymentMethod, librarianId, conn);
                     remainingToAllocate -= p.getAmount();
                 } else {
-                    // Nếu trả một phần của khoản phạt này: giảm số tiền còn nợ của phiếu
-                    double newSlipDebt = p.getAmount() - remainingToAllocate;
-                    String sql = "UPDATE thanh_toan SET so_tien = ? WHERE ma_giao_dich = ?";
-                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                        ps.setDouble(1, newSlipDebt);
-                        ps.setString(2, p.getTransactionId());
-                        ps.executeUpdate();
-                    }
+                    // Trả một phần khoản phạt
+                    double remainingForThisFine = p.getAmount() - remainingToAllocate;
+                    paymentRepo.updateRemainingAmount(p.getPaymentId(), remainingForThisFine, conn);
                     remainingToAllocate = 0;
                 }
             }
 
-            // Commit thành công giao dịch
-            conn.commit();
-
+            conn.commit(); // Hoàn tất Transaction
             double remainingDebt = Math.max(0, currentDebt - actualPayAmount);
-            String successMsg = String.format("Thanh toán tiền phạt thành công cho sinh viên: %s (Mã số: %s).\n"
-                    + "Số tiền đã thu: %,.0f VNĐ (Phương thức: %s).\n"
-                    + "Số tiền nợ còn lại: %,.0f VNĐ.",
-                    student.getFullName(), studentId, actualPayAmount, paymentMethod, remainingDebt);
 
-            return new DebtPaymentResult(true, successMsg, studentId, actualPayAmount, remainingDebt);
+            String successMsg;
+            if (remainingDebt == 0) {
+                successMsg = "Thanh toán thành công toàn bộ số nợ tiền phạt ("
+                        + String.format("%,.0f VNĐ", actualPayAmount) + ").";
+            } else {
+                successMsg = "Thanh toán thành công " + String.format("%,.0f VNĐ", actualPayAmount)
+                        + ". Số nợ tiền phạt còn lại: " + String.format("%,.0f VNĐ", remainingDebt) + ".";
+            }
+
+            return new DebtPaymentResultDTO(true, successMsg, studentId, actualPayAmount, remainingDebt);
 
         } catch (SQLException e) {
             if (conn != null) {
@@ -133,8 +137,7 @@ public class DebtService {
                     ex.printStackTrace();
                 }
             }
-            return new DebtPaymentResult(false, "Lỗi cơ sở dữ liệu trong quá trình thanh toán nợ: " + e.getMessage(), studentId, 0, 0);
-
+            return new DebtPaymentResultDTO(false, "Lỗi cơ sở dữ liệu trong quá trình thanh toán nợ: " + e.getMessage(), studentId, 0, 0);
         } catch (Exception e) {
             if (conn != null) {
                 try {
@@ -143,14 +146,14 @@ public class DebtService {
                     ex.printStackTrace();
                 }
             }
-            return new DebtPaymentResult(false, "Lỗi hệ thống trong quá trình xử lý thanh toán: " + e.getMessage(), studentId, 0, 0);
-
+            return new DebtPaymentResultDTO(false, "Lỗi hệ thống trong quá trình xử lý thanh toán: " + e.getMessage(), studentId, 0, 0);
         } finally {
             if (conn != null) {
                 try {
                     conn.setAutoCommit(true);
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                    conn.close();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
                 }
             }
         }

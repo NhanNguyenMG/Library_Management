@@ -1,16 +1,16 @@
 package tests;
 
 import db.DBConnection;
-import model.BorrowSlip;
-import model.BorrowingItemDTO;
-import model.Payment;
-import model.ReturnResult;
-import model.Student;
 import repository.BookRepository;
 import repository.BorrowDetailRepository;
 import repository.BorrowSlipRepository;
 import repository.PaymentRepository;
 import repository.StudentRepository;
+import dto.BorrowingItemDTO;
+import dto.ReturnResultDTO;
+import model.BorrowSlip;
+import model.Payment;
+import model.Student;
 import service.ReturnService;
 
 import java.sql.Connection;
@@ -76,7 +76,7 @@ public class PartialReturnAndDebtTest {
         scannedList.add(itemToReturn);
 
         Student student = studentRepo.findByStudentId(testStudentId);
-        ReturnResult result = returnService.xacNhanTraSach(scannedList, testSlipId, student, "TT0001", true);
+        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, student, "TT0001", true);
 
         if (!result.isSuccess()) {
             System.out.println("[ FAILED ] (Xác nhận trả không thành công: " + result.getMessage() + ")");
@@ -130,7 +130,7 @@ public class PartialReturnAndDebtTest {
         item.setStatus("Đã quét");
         List<BorrowingItemDTO> scannedList = List.of(item);
 
-        ReturnResult result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", true);
+        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", true);
 
         if (!result.isSuccess() || result.getFineAmount() <= 0) {
             System.out.println("[ FAILED ] (Không phát sinh tiền phạt theo quy định)");
@@ -181,7 +181,7 @@ public class PartialReturnAndDebtTest {
         item.setStatus("Đã quét");
         List<BorrowingItemDTO> scannedList = List.of(item);
 
-        ReturnResult result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", false);
+        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", false);
 
         if (!result.isSuccess() || result.getFineAmount() <= 0) {
             System.out.println("[ FAILED ] (Không phát sinh tiền phạt theo quy định)");

@@ -11,7 +11,6 @@ public class Payment {
 
     public Payment() {}
 
-    // Bổ sung constructor có tham số
     public Payment(String transactionId, String slipId, double amount, String paymentMethod, String status, Timestamp paymentTime) {
         this.transactionId = transactionId;
         this.slipId = slipId;
@@ -22,6 +21,7 @@ public class Payment {
     }
 
     public String getTransactionId() { return transactionId; }
+    public String getPaymentId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
     public String getSlipId() { return slipId; }
     public void setSlipId(String slipId) { this.slipId = slipId; }

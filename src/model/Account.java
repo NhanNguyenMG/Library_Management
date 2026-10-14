@@ -6,10 +6,8 @@ public class Account {
     private String role; 
     private String status; 
 
-    // Constructor rỗng
     public Account() {}
 
-    // Constructor có tham số
     public Account(String username, String password, String role, String status) {
         this.username = username;
         this.password = password;

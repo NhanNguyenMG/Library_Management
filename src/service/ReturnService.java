@@ -1,18 +1,21 @@
 package service;
 
 import db.DBConnection;
-import model.Book;
-import model.BorrowDetail;
-import model.BorrowSlip;
-import model.BorrowingItemDTO;
-import model.PriorityStudent;
-import model.ReturnResult;
-import model.Student;
 import repository.BookRepository;
 import repository.BorrowDetailRepository;
 import repository.BorrowSlipRepository;
 import repository.PaymentRepository;
 import repository.StudentRepository;
+import dto.BorrowingItemDTO;
+import dto.ReturnResultDTO;
+import exception.BusinessException;
+import exception.RepositoryException;
+import model.Book;
+import model.BorrowDetail;
+import model.BorrowSlip;
+import model.PriorityStudent;
+import model.Student;
+import util.ValidationUtil;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -22,8 +25,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-
 
 public class ReturnService {
 
@@ -60,17 +61,18 @@ public class ReturnService {
      *
      * @param studentId mã số sinh viên
      * @return đối tượng Student hoặc PriorityStudent
-     * @throws Exception nếu mã rỗng hoặc không tìm thấy sinh viên
      */
-    public Student getStudentInfo(String studentId) throws Exception {
-        if (studentId == null || studentId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã thẻ sinh viên không được để trống.");
+    public Student getStudentInfo(String studentId) {
+        ValidationUtil.validateStudentId(studentId);
+        try {
+            Student student = studentRepo.findByStudentId(studentId.trim());
+            if (student == null) {
+                throw new BusinessException("Không tìm thấy thông tin sinh viên với mã: " + studentId);
+            }
+            return student;
+        } catch (SQLException e) {
+            throw new RepositoryException("Lỗi truy vấn CSDL hồ sơ sinh viên: " + e.getMessage(), e);
         }
-        Student student = studentRepo.findByStudentId(studentId.trim());
-        if (student == null) {
-            throw new Exception("Không tìm thấy thông tin sinh viên với mã: " + studentId);
-        }
-        return student;
     }
 
     /**
@@ -78,106 +80,107 @@ public class ReturnService {
      *
      * @param studentId mã số sinh viên
      * @return danh sách BorrowingItemDTO hiển thị lên bảng
-     * @throws Exception nếu xảy ra lỗi truy vấn
      */
-    public List<BorrowingItemDTO> getBorrowingDetailsByStudent(String studentId) throws Exception {
-        if (studentId == null || studentId.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã thẻ sinh viên không được để trống.");
-        }
+    public List<BorrowingItemDTO> getBorrowingDetailsByStudent(String studentId) {
+        ValidationUtil.validateStudentId(studentId);
 
-        List<BorrowSlip> activeSlips = borrowSlipRepo.findActiveSlipsByStudentId(studentId.trim());
-        List<BorrowingItemDTO> items = new ArrayList<>();
+        try {
+            List<BorrowSlip> activeSlips = borrowSlipRepo.findActiveSlipsByStudentId(studentId.trim());
+            List<BorrowingItemDTO> items = new ArrayList<>();
 
-        for (BorrowSlip slip : activeSlips) {
-            List<BorrowDetail> details = borrowDetailRepo.findActiveBySlipId(slip.getSlipId());
-            for (BorrowDetail detail : details) {
-                Book book = bookRepo.findById(detail.getBookId());
-                String bookTitle = (book != null) ? book.getTitle() : ("Sách " + detail.getBookId());
+            for (BorrowSlip slip : activeSlips) {
+                List<BorrowDetail> details = borrowDetailRepo.findActiveBySlipId(slip.getSlipId());
+                for (BorrowDetail detail : details) {
+                    Book book = bookRepo.findById(detail.getBookId());
+                    String bookTitle = (book != null) ? book.getTitle() : ("Sách " + detail.getBookId());
 
-                BorrowingItemDTO item = new BorrowingItemDTO(
-                        slip.getSlipId(),
-                        detail.getBookId(),
-                        bookTitle,
-                        slip.getDueDate(),
-                        detail.getQuantity()
-                );
-                items.add(item);
+                    BorrowingItemDTO item = new BorrowingItemDTO(
+                            slip.getSlipId(),
+                            detail.getBookId(),
+                            bookTitle,
+                            slip.getDueDate(),
+                            detail.getQuantity()
+                    );
+                    items.add(item);
+                }
             }
+            return items;
+        } catch (SQLException e) {
+            throw new RepositoryException("Lỗi truy vấn CSDL danh sách mượn sách: " + e.getMessage(), e);
         }
-        return items;
     }
 
     /**
-     * Tính số ngày trễ hạn dựa trên hạn trả và thời điểm trả thực tế.
+     * Tính số ngày trễ hạn dựa vào hạn trả và ngày trả thực tế.
      *
-     * @param dueDate hạn trả của phiếu mượn
-     * @param actualReturnDate thời điểm trả thực tế (hoặc thời điểm hiện tại)
-     * @return số ngày trễ hạn (>= 0)
+     * @param dueDate hạn trả quy định
+     * @param actualReturnDate ngày trả thực tế
+     * @return số ngày trễ (0 nếu trả đúng hạn hoặc sớm hơn)
      */
     public long calculateLateDays(Timestamp dueDate, Timestamp actualReturnDate) {
         if (dueDate == null || actualReturnDate == null) {
             return 0;
         }
-        if (actualReturnDate.after(dueDate)) {
-            long diffMillis = actualReturnDate.getTime() - dueDate.getTime();
-            long days = (long) Math.ceil((double) diffMillis / (1000L * 60L * 60L * 24L));
-            return Math.max(0, days);
+
+        long diffMillis = actualReturnDate.getTime() - dueDate.getTime();
+        if (diffMillis <= 0) {
+            return 0; // Trả đúng hạn hoặc sớm hạn
         }
-        return 0;
+
+        // Chuyển đổi mili-giây sang ngày (làm tròn lên)
+        return (long) Math.ceil((double) diffMillis / (1000 * 60 * 60 * 24));
     }
 
     /**
-     * Tính toán tổng số tiền phạt dựa trên số ngày trễ và diện đối tượng sinh viên.
-     * Tự động áp dụng giảm giá nếu sinh viên thuộc diện ưu tiên (PriorityStudent).
+     * Tính tiền phạt trả trễ và bồi thường thiệt hại (nếu có).
+     * Áp dụng chính sách ưu đãi giảm trừ 20% phí trễ hạn cho đối tượng PriorityStudent.
      *
-     * @param lateDays số ngày trễ
+     * @param lateDays số ngày quá hạn
      * @param student đối tượng sinh viên
-     * @param compensationFees phí đền bù hư hỏng/mất sách
-     * @return tổng số tiền phạt phát sinh
+     * @param compensationFees phí bồi thường hư hỏng hoặc mất sách
+     * @return tổng tiền phạt phát sinh (VNĐ)
      */
     public double calculateFine(long lateDays, Student student, double compensationFees) {
-        double originalLateFine = Math.max(0, lateDays) * FINE_PER_DAY;
-        double actualLateFine = originalLateFine;
+        double lateFine = 0.0;
+        if (lateDays > 0) {
+            lateFine = lateDays * FINE_PER_DAY;
 
-        if (student instanceof PriorityStudent ps) {
-            actualLateFine = ps.calculateDiscountedFine(originalLateFine);
+            // Kiểm tra chính sách giảm trừ cho Sinh viên ưu tiên (Ủy quyền cho PriorityStudent)
+            if (student instanceof PriorityStudent priorityStudent) {
+                lateFine = priorityStudent.calculateDiscountedFine(lateFine);
+            }
         }
 
-        return actualLateFine + Math.max(0, compensationFees);
+        double totalFine = lateFine + Math.max(0.0, compensationFees);
+        return Math.round(totalFine);
     }
 
     /**
-     * Tính toán tổng số tiền phạt dựa trên từng cuốn sách được quét.
-     * Mỗi cuốn tính trễ riêng theo hạn trả của cuốn đó và nhân với số lượng sách (SRS 2.3.7 bước 4):
-     * Tiền phạt = (tổng số ngày trễ * FINE_PER_DAY * số lượng) - (chiết khấu sinh viên ưu tiên nếu có) + phí hư hỏng/mất sách.
+     * Tính tổng số tiền phạt phát sinh cho danh sách các cuốn sách được quét.
      *
      * @param items danh sách các cuốn sách được quét
      * @param student đối tượng sinh viên
      * @param actualReturnDate thời điểm trả thực tế
-     * @return tổng số tiền phạt phát sinh
+     * @return tổng tiền phạt (VNĐ)
      */
     public double calculateTotalFineForItems(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
         if (items == null || items.isEmpty()) {
             return 0.0;
         }
-        double totalOriginalLateFine = 0.0;
-        double totalCompFee = 0.0;
+
+        double total = 0.0;
         for (BorrowingItemDTO item : items) {
             if (item.isScanned()) {
-                long days = calculateLateDays(item.getDueDate(), actualReturnDate);
-                totalOriginalLateFine += Math.max(0, days) * FINE_PER_DAY * Math.max(1, item.getQuantity());
-                totalCompFee += Math.max(0, item.getCompensationFee());
+                long lateDays = calculateLateDays(item.getDueDate(), actualReturnDate);
+                double compensation = item.getCompensationFee();
+                total += calculateFine(lateDays, student, compensation);
             }
         }
-        double actualLateFine = totalOriginalLateFine;
-        if (student instanceof PriorityStudent ps) {
-            actualLateFine = ps.calculateDiscountedFine(totalOriginalLateFine);
-        }
-        return actualLateFine + totalCompFee;
+        return total;
     }
 
     /**
-     * Lấy số ngày trễ lớn nhất trong các cuốn sách được quét.
+     * Tính số ngày trễ lớn nhất trong danh sách các cuốn sách được quét.
      *
      * @param items danh sách các cuốn sách được quét
      * @param actualReturnDate thời điểm trả thực tế
@@ -202,10 +205,10 @@ public class ReturnService {
     /**
      * Xác nhận trả sách với giao dịch Database Transaction (mặc định chưa thu tiền mặt ngay).
      */
-    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                       String slipId,
-                                       Student student,
-                                       String librarianId) {
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                           String slipId,
+                                           Student student,
+                                           String librarianId) {
         return xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
     }
 
@@ -219,16 +222,16 @@ public class ReturnService {
      * @param student đối tượng sinh viên
      * @param librarianId mã thủ thư đang thực hiện
      * @param isPaidNow true nếu thu tiền mặt trực tiếp tại quầy, false nếu ghi nợ vào tài khoản để trả sau
-     * @return ReturnResult kết quả trả sách
+     * @return ReturnResultDTO kết quả trả sách
      */
-    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                       String slipId,
-                                       Student student,
-                                       String librarianId,
-                                       boolean isPaidNow) {
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                           String slipId,
+                                           Student student,
+                                           String librarianId,
+                                           boolean isPaidNow) {
 
         if (scannedItems == null || scannedItems.isEmpty()) {
-            return new ReturnResult(false, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận trả sách.", slipId, 0, 0);
+            return new ReturnResultDTO(false, "Vui lòng quét ít nhất một cuốn sách trước khi xác nhận trả sách.", slipId, 0, 0);
         }
 
         List<BorrowingItemDTO> validScanned = scannedItems.stream()
@@ -236,7 +239,7 @@ public class ReturnService {
                 .toList();
 
         if (validScanned.isEmpty()) {
-            return new ReturnResult(false, "Không có tài liệu nào trong danh sách ở trạng thái 'Đã quét'.", slipId, 0, 0);
+            return new ReturnResultDTO(false, "Không có tài liệu nào trong danh sách ở trạng thái 'Đã quét'.", slipId, 0, 0);
         }
 
         Connection conn = null;
@@ -319,7 +322,7 @@ public class ReturnService {
                 }
             }
 
-            return new ReturnResult(true, successMsg, slipsSummary, totalFine, maxLateDays);
+            return new ReturnResultDTO(true, successMsg, slipsSummary, totalFine, maxLateDays);
 
         } catch (SQLException e) {
             // Rollback giao dịch nếu gặp bất kỳ lỗi CSDL nào
@@ -330,7 +333,7 @@ public class ReturnService {
                     ex.printStackTrace();
                 }
             }
-            return new ReturnResult(false, "Lỗi cơ sở dữ liệu trong quá trình lưu dữ liệu trả sách. Giao dịch đã được khôi phục nguyên trạng. Chi tiết: " + e.getMessage(), slipId, 0, 0);
+            return new ReturnResultDTO(false, "Lỗi cơ sở dữ liệu trong quá trình lưu dữ liệu trả sách. Giao dịch đã được khôi phục nguyên trạng. Chi tiết: " + e.getMessage(), slipId, 0, 0);
 
         } catch (Exception e) {
             if (conn != null) {
@@ -340,7 +343,7 @@ public class ReturnService {
                     ex.printStackTrace();
                 }
             }
-            return new ReturnResult(false, "Lỗi hệ thống trong quá trình xử lý trả sách: " + e.getMessage(), slipId, 0, 0);
+            return new ReturnResultDTO(false, "Lỗi hệ thống trong quá trình xử lý trả sách: " + e.getMessage(), slipId, 0, 0);
 
         } finally {
             if (conn != null) {

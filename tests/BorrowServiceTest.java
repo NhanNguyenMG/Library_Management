@@ -1,6 +1,6 @@
 package tests;
 
-import model.BorrowResult;
+import dto.BorrowResultDTO;
 import model.Student;
 import service.BorrowService;
 
@@ -21,7 +21,7 @@ public class BorrowServiceTest {
         try {
             // Giả lập sinh viên đang mượn 4 cuốn
             Student student = new Student("SV_TEST_01", "Sinh Viên Mẫu", "sv@test.edu.vn", "sv001", "0901234567", 4, 0.0, "THUONG");
-            BorrowResult res = borrowService.checkBookAvailability(student.getStudentId(), "DS0001", new ArrayList<>());
+            BorrowResultDTO res = borrowService.checkBookAvailability(student.getStudentId(), "DS0001", new ArrayList<>());
             // Nếu đủ điều kiện và không nợ thì được phép thêm
             return res != null;
         } catch (Exception e) {
@@ -35,7 +35,7 @@ public class BorrowServiceTest {
      */
     public boolean testExceedLimitRejection() {
         try {
-            BorrowResult res = borrowService.checkBorrowEligibility("SV_OVER_LIMIT");
+            BorrowResultDTO res = borrowService.checkBorrowEligibility("SV_OVER_LIMIT");
             // Sinh viên chưa tồn tại hoặc bị từ chối
             return res != null;
         } catch (Exception e) {

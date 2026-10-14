@@ -1,7 +1,7 @@
 package controller;
 
-import model.BorrowingItemDTO;
-import model.ReturnResult;
+import dto.BorrowingItemDTO;
+import dto.ReturnResultDTO;
 import model.Student;
 import service.ReturnService;
 
@@ -23,14 +23,14 @@ public class ReturnController {
     /**
      * Tra cứu hồ sơ sinh viên theo mã thẻ / MSSV.
      */
-    public Student layThongTinSinhVien(String studentId) throws Exception {
+    public Student layThongTinSinhVien(String studentId) {
         return returnService.getStudentInfo(studentId);
     }
 
     /**
      * Lấy danh sách các đầu sách đang mượn của sinh viên.
      */
-    public List<BorrowingItemDTO> laySachDangMuon(String studentId) throws Exception {
+    public List<BorrowingItemDTO> laySachDangMuon(String studentId) {
         return returnService.getBorrowingDetailsByStudent(studentId);
     }
 
@@ -65,21 +65,21 @@ public class ReturnController {
     /**
      * Xác nhận trả sách (mặc định chưa thu tiền mặt ngay).
      */
-    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                       String slipId,
-                                       Student student,
-                                       String librarianId) {
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                           String slipId,
+                                           Student student,
+                                           String librarianId) {
         return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
     }
 
     /**
-     * Xác nhận trả sách với tuỳ chọn thu tiền mặt ngay hoặc ghi nợ
+     * Xác nhận trả sách kèm lựa chọn thu tiền mặt ngay hoặc ghi nhận nợ.
      */
-    public ReturnResult xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                       String slipId,
-                                       Student student,
-                                       String librarianId,
-                                       boolean isPaidNow) {
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+                                           String slipId,
+                                           Student student,
+                                           String librarianId,
+                                           boolean isPaidNow) {
         return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, isPaidNow);
     }
 }
