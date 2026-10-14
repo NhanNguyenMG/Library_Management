@@ -1,10 +1,13 @@
 package ui;
 
 import controller.BorrowController;
+import dto.BorrowResultDTO;
 import model.Book;
-import model.BorrowResult;
 import model.Student;
 import service.SessionManager;
+import ui.component.TableButtonEditor;
+import ui.component.TableButtonRenderer;
+import util.FormatUtil;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -320,9 +323,14 @@ public class BorrowForm extends JFrame {
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         tblPendingBooks.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
 
-        // Nút "Xóa" trên từng dòng
-        tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellRenderer(new DeleteButtonRenderer());
-        tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellEditor(new DeleteButtonEditor());
+        // Nút "Xóa" trên từng dòng (sử dụng component UI dùng chung)
+        Color deleteBg = new Color(254, 242, 242);
+        Color deleteFg = COLOR_ERROR_TEXT;
+        LineBorder deleteBorder = new LineBorder(new Color(248, 113, 113), 1);
+        tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellRenderer(
+                new TableButtonRenderer(DELETE_BUTTON_TEXT, deleteBg, deleteFg, deleteBorder));
+        tblPendingBooks.getColumnModel().getColumn(COLUMN_DELETE).setCellEditor(
+                new TableButtonEditor(DELETE_BUTTON_TEXT, deleteBg, deleteFg, deleteBorder, this::onRemoveBook));
 
         JScrollPane scrollPane = new JScrollPane(tblPendingBooks);
         scrollPane.setPreferredSize(new Dimension(880, 200));
@@ -401,7 +409,7 @@ public class BorrowForm extends JFrame {
         clearPendingBooks();
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
-            BorrowResult result = borrowController.handleCheckEligibility(studentId);
+            BorrowResultDTO result = borrowController.handleCheckEligibility(studentId);
 
             if (result.isSuccess()) {
                 currentStudent = result.getStudent();
@@ -446,7 +454,7 @@ public class BorrowForm extends JFrame {
 
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
-            BorrowResult result = borrowController.handleAddBook(
+            BorrowResultDTO result = borrowController.handleAddBook(
                     currentStudent.getStudentId(), bookId, getPendingBookIds());
 
             if (result.isSuccess()) {
@@ -515,7 +523,7 @@ public class BorrowForm extends JFrame {
         btnConfirmBorrow.setEnabled(false);
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
-            BorrowResult result = borrowController.handleBorrow(
+            BorrowResultDTO result = borrowController.handleBorrow(
                     currentStudent.getStudentId(), getPendingBookIds());
 
             if (result.isSuccess()) {
@@ -551,7 +559,7 @@ public class BorrowForm extends JFrame {
     /**
      * Hiển thị thông báo thành công.
      */
-    private void showSuccessMessage(BorrowResult result) {
+    private void showSuccessMessage(BorrowResultDTO result) {
         String message = "LẬP PHIẾU MƯỢN THÀNH CÔNG\n\n"
                 + "Mã phiếu mượn: " + result.getSlipId() + "\n"
                 + "Sinh viên: " + currentStudent.getFullName() + " (MSSV: " + currentStudent.getStudentId() + ")\n"
@@ -705,59 +713,7 @@ public class BorrowForm extends JFrame {
     }
 
     private String formatMoney(double amount) {
-        return String.format(Locale.forLanguageTag("vi-VN"), "%,.0f đ", amount);
-    }
-
-    // Nút "Xóa" trong bảng danh sách chờ mượn
-
-    private class DeleteButtonRenderer extends JButton implements TableCellRenderer {
-        DeleteButtonRenderer() {
-            setOpaque(true);
-            setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            setBackground(new Color(254, 242, 242));
-            setForeground(COLOR_ERROR_TEXT);
-            setBorder(new LineBorder(new Color(248, 113, 113), 1));
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                       boolean hasFocus, int row, int column) {
-            setText(DELETE_BUTTON_TEXT);
-            return this;
-        }
-    }
-
-    private class DeleteButtonEditor extends DefaultCellEditor {
-        private final JButton button;
-        private int editingRow;
-
-        DeleteButtonEditor() {
-            super(new JCheckBox());
-            button = new JButton(DELETE_BUTTON_TEXT);
-            button.setOpaque(true);
-            button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            button.setBackground(new Color(254, 242, 242));
-            button.setForeground(COLOR_ERROR_TEXT);
-            button.setBorder(new LineBorder(new Color(248, 113, 113), 1));
-            button.addActionListener(e -> {
-                int rowToRemove = editingRow;
-                fireEditingStopped();
-                // Xóa dòng sau khi JTable kết thúc chỉnh sửa để tránh lỗi chỉ số dòng
-                SwingUtilities.invokeLater(() -> onRemoveBook(rowToRemove));
-            });
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected,
-                                                     int row, int column) {
-            editingRow = row;
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return DELETE_BUTTON_TEXT;
-        }
+        return FormatUtil.formatMoney(amount);
     }
 
     /**

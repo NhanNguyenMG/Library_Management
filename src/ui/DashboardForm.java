@@ -1,9 +1,11 @@
 package ui;
 
 import controller.DebtController;
-import model.DebtPaymentResult;
+import dto.DebtPaymentResultDTO;
 import model.Student;
 import service.SessionManager;
+import ui.component.SidebarMenuItem;
+import ui.util.IconFactory;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -485,7 +487,7 @@ public class DashboardForm extends JFrame {
         JPanel headerRow = new JPanel(new BorderLayout());
         headerRow.setBackground(Color.WHITE);
 
-        JLabel lblHeaderTitle = new JLabel("Thanh toán tiền phạt trực tuyến (Demo)");
+        JLabel lblHeaderTitle = new JLabel("Cổng thanh toán tiền phạt trực tuyến");
         lblHeaderTitle.setFont(new Font("Segoe UI", Font.BOLD, 14));
         lblHeaderTitle.setForeground(COLOR_TEXT_MAIN);
 
@@ -562,7 +564,7 @@ public class DashboardForm extends JFrame {
 
         if (choice == JOptionPane.YES_OPTION) {
             DebtController debtController = new DebtController();
-            DebtPaymentResult result = debtController.thanhToanNo(
+            DebtPaymentResultDTO result = debtController.thanhToanNo(
                     student.getStudentId(),
                     debt,
                     "ONLINE",
@@ -583,7 +585,7 @@ public class DashboardForm extends JFrame {
                 JOptionPane.showMessageDialog(
                         this,
                         "Lỗi trong quá trình thực hiện thanh toán: " + result.getMessage(),
-                        "Lỗi",
+                        "Lỗi thanh toán",
                         JOptionPane.ERROR_MESSAGE
                 );
             }
@@ -804,70 +806,6 @@ public class DashboardForm extends JFrame {
         return strut;
     }
 
-    // Lớp thành phần menu sidebar (SidebarMenuItem)
-    private static class SidebarMenuItem extends JPanel {
-        private boolean active = false;
-        private final JLabel lblIcon;
-        private final JLabel lblText;
-        private final Runnable clickAction;
-
-        public SidebarMenuItem(Icon icon, String text, Runnable action) {
-            this.clickAction = action;
-            setLayout(new FlowLayout(FlowLayout.LEFT, 10, 8));
-            setBackground(COLOR_SIDEBAR);
-            setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-            setAlignmentX(Component.LEFT_ALIGNMENT);
-            setCursor(new Cursor(Cursor.HAND_CURSOR));
-
-            lblIcon = new JLabel(icon);
-            lblText = new JLabel(text);
-            lblText.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            lblText.setForeground(COLOR_SIDEBAR_TEXT);
-
-            add(lblIcon);
-            add(lblText);
-
-            addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    if (!active) {
-                        setBackground(COLOR_SIDEBAR_HOVER);
-                        lblText.setForeground(Color.WHITE);
-                    }
-                }
-
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    if (!active) {
-                        setBackground(COLOR_SIDEBAR);
-                        lblText.setForeground(COLOR_SIDEBAR_TEXT);
-                    }
-                }
-
-                @Override
-                public void mouseClicked(MouseEvent e) {
-                    if (clickAction != null) {
-                        clickAction.run();
-                    }
-                }
-            });
-        }
-
-        public void setActive(boolean active) {
-            this.active = active;
-            if (active) {
-                setBackground(COLOR_SIDEBAR_HOVER);
-                lblText.setForeground(Color.WHITE);
-                lblText.setFont(new Font("Segoe UI", Font.BOLD, 13));
-            } else {
-                setBackground(COLOR_SIDEBAR);
-                lblText.setForeground(COLOR_SIDEBAR_TEXT);
-                lblText.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-            }
-            repaint();
-        }
-    }
-
     // Điều hướng các chức năng
     private void openSearchBook() {
         SwingUtilities.invokeLater(() -> {
@@ -1015,169 +953,29 @@ public class DashboardForm extends JFrame {
         }
     }
 
-    // Các hàm tạo vector icon tự vẽ bằng Graphics2D
+    // Các hàm tạo vector icon ủy quyền cho IconFactory
     public static Icon createSearchIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.setStroke(new BasicStroke(size >= 20 ? 2.3f : 1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-                int d = (int) (size * 0.55);
-                int ox = x + (int) (size * 0.12);
-                int oy = y + (int) (size * 0.12);
-                g2.drawOval(ox, oy, d, d);
-
-                int hx1 = ox + (int) (d * 0.82);
-                int hy1 = oy + (int) (d * 0.82);
-                int hx2 = x + size - 3;
-                int hy2 = y + size - 3;
-                g2.drawLine(hx1, hy1, hx2, hy2);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createSearchIcon(size, color);
     }
 
     public static Icon createPlusIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.setStroke(new BasicStroke(size >= 20 ? 2.6f : 2.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-                int midX = x + size / 2;
-                int midY = y + size / 2;
-                int pad = (int) (size * 0.22);
-
-                g2.drawLine(x + pad, midY, x + size - pad, midY);
-                g2.drawLine(midX, y + pad, midX, y + size - pad);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createPlusIcon(size, color);
     }
 
     public static Icon createReturnIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.setStroke(new BasicStroke(size >= 20 ? 2.2f : 1.8f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-                int left = x + (int) (size * 0.18);
-                int right = x + (int) (size * 0.78);
-                int top = y + (int) (size * 0.28);
-                int bottom = y + (int) (size * 0.74);
-
-                // Đường cong quay đầu
-                Path2D path = new Path2D.Float();
-                path.moveTo(right, bottom);
-                path.lineTo(right, top + (bottom - top) / 2);
-                path.quadTo(right, top, right - (right - left) / 2, top);
-                path.lineTo(left + 2, top);
-                g2.draw(path);
-
-                // Mũi tên chỉ sang trái
-                g2.drawLine(left, top, left + (int) (size * 0.24), top - (int) (size * 0.20));
-                g2.drawLine(left, top, left + (int) (size * 0.24), top + (int) (size * 0.20));
-
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createReturnIcon(size, color);
     }
 
     public static Icon createDotIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                int d = (int) (size * 0.55);
-                g2.fillOval(x + (size - d) / 2, y + (size - d) / 2, d, d);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createDotIcon(size, color);
     }
 
     public static Icon createPaymentIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.setStroke(new BasicStroke(size >= 20 ? 2.0f : 1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-                int w = (int) (size * 0.82);
-                int h = (int) (size * 0.60);
-                int startX = x + (size - w) / 2;
-                int startY = y + (size - h) / 2;
-
-                // Thẻ ngân hàng / Tiền mặt
-                g2.drawRoundRect(startX, startY, w, h, 3, 3);
-                g2.drawLine(startX, startY + (int) (h * 0.38), startX + w, startY + (int) (h * 0.38));
-                g2.fillOval(startX + (int) (w * 0.18), startY + (int) (h * 0.62), (int)(size * 0.15), (int)(size * 0.15));
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createPaymentIcon(size, color);
     }
 
     public static Icon createLogoutIcon(int size, Color color) {
-        return new Icon() {
-            @Override
-            public void paintIcon(Component c, Graphics g, int x, int y) {
-                Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(color);
-                g2.setStroke(new BasicStroke(1.9f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-
-                int midX = x + size / 2;
-                int midY = y + size / 2;
-                int r = (int) (size * 0.35);
-
-                // Vẽ cung tròn biểu tượng Power / Exit
-                g2.drawArc(midX - r, midY - r, r * 2, r * 2, -55, 290);
-                // Vạch đứng trên cùng
-                g2.drawLine(midX, midY - r - 2, midX, midY - 1);
-                g2.dispose();
-            }
-
-            @Override
-            public int getIconWidth() { return size; }
-            @Override
-            public int getIconHeight() { return size; }
-        };
+        return IconFactory.createLogoutIcon(size, color);
     }
 
     private JButton createStyledButton(String text, Color bg, Color fg) {
@@ -1206,7 +1004,7 @@ public class DashboardForm extends JFrame {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception ignored) {}
 
-        // Mock session nếu khởi chạy trực tiếp
+        // Khởi tạo phiên đăng nhập mặc định khi thực thi kiểm thử độc lập giao diện
         if (!SessionManager.getInstance().isLoggedIn()) {
             SessionManager.getInstance().login(
                     "admin",

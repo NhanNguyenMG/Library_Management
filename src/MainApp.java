@@ -1,12 +1,13 @@
 import db.DBConnection;
-import service.SessionManager;
+import ui.InfrastructureStatusFrame;
+import ui.LoginForm;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
  * Điểm khởi chạy ứng dụng Quản lý Thư viện.
- * Điều phối kiểm tra kết nối CSDL và hiển thị giao diện phù hợp.
+ * Tuân thủ Single Responsibility Principle (SRP): Chỉ điều phối kiểm tra hạ tầng và khởi chạy màn hình chính.
  */
 public class MainApp {
 
@@ -74,125 +75,29 @@ public class MainApp {
                 openLoginForm();
             } else {
                 System.out.println("[INFO] [MainApp] Đã hủy khởi động ứng dụng.");
-                System.exit(0);
+                showInfrastructureOverviewWindow();
             }
         }
     }
 
     /**
-     * Khởi chạy màn hình đăng nhập LoginForm (nếu có) hoặc cửa sổ trạng thái hạ tầng.
+     * Khởi chạy màn hình đăng nhập LoginForm trực tiếp mà không dùng phản chiếu.
      */
     public static void openLoginForm() {
         try {
-            Class<?> loginFormClass = Class.forName("ui.LoginForm");
-            JFrame loginFrame = (JFrame) loginFormClass.getDeclaredConstructor().newInstance();
-            loginFrame.setVisible(true);
-            return;
-        } catch (ClassNotFoundException e) {
-            System.out.println("[INFO] [MainApp] Không tìm thấy ui.LoginForm, chuyển sang cửa sổ trạng thái hệ thống.");
+            LoginForm loginForm = new LoginForm();
+            loginForm.setVisible(true);
         } catch (Exception e) {
             System.err.println("[ERROR] [MainApp] Lỗi khởi chạy giao diện đăng nhập: " + e.getMessage());
+            showInfrastructureOverviewWindow();
         }
-
-        showInfrastructureOverviewWindow();
     }
 
     /**
-     * Cửa sổ hiển thị trạng thái hạ tầng kỹ thuật (Fallback Window).
+     * Hiển thị cửa sổ trạng thái hạ tầng kỹ thuật (Ủy quyền cho InfrastructureStatusFrame).
      */
-    private static void showInfrastructureOverviewWindow() {
-        JFrame frame = new JFrame(APP_TITLE + " - " + APP_VERSION);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(720, 520);
-        frame.setLocationRelativeTo(null);
-
-        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-
-        // Tiêu đề
-        JPanel headerPanel = new JPanel(new GridLayout(2, 1, 3, 3));
-        JLabel titleLabel = new JLabel("TRẠNG THÁI HẠ TẦNG HỆ THỐNG", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        titleLabel.setForeground(new Color(24, 76, 120));
-
-        JLabel subtitleLabel = new JLabel(APP_TITLE + " (" + APP_VERSION + ")", SwingConstants.CENTER);
-        subtitleLabel.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        subtitleLabel.setForeground(Color.DARK_GRAY);
-
-        headerPanel.add(titleLabel);
-        headerPanel.add(subtitleLabel);
-        mainPanel.add(headerPanel, BorderLayout.NORTH);
-
-        // Vùng hiển thị thông tin kỹ thuật
-        JTextArea statusArea = new JTextArea();
-        statusArea.setEditable(false);
-        statusArea.setFont(new Font("Consolas", Font.PLAIN, 13));
-        statusArea.setBackground(new Color(248, 249, 250));
-        statusArea.setBorder(BorderFactory.createLineBorder(new Color(220, 224, 230)));
-
-        updateStatusText(statusArea);
-        mainPanel.add(new JScrollPane(statusArea), BorderLayout.CENTER);
-
-        // Thanh điều khiển
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 5));
-
-        JButton refreshBtn = new JButton("Làm mới trạng thái");
-        refreshBtn.addActionListener(e -> {
-            updateStatusText(statusArea);
-            JOptionPane.showMessageDialog(frame, "Đã cập nhật trạng thái hệ thống.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-        });
-
-        JButton testDbBtn = new JButton("Kiểm tra kết nối CSDL");
-        testDbBtn.addActionListener(e -> {
-            boolean test = DBConnection.getInstance().testConnection(3);
-            updateStatusText(statusArea);
-            if (test) {
-                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thành công.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
-            } else {
-                JOptionPane.showMessageDialog(frame, "Kết nối cơ sở dữ liệu MySQL thất bại. Vui lòng kiểm tra lại dịch vụ MySQL.", "Lỗi kết nối", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-
-        JButton closeBtn = new JButton("Thoát");
-        closeBtn.addActionListener(e -> System.exit(0));
-
-        buttonPanel.add(refreshBtn);
-        buttonPanel.add(testDbBtn);
-        buttonPanel.add(closeBtn);
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
-
-        frame.setContentPane(mainPanel);
-        frame.setVisible(true);
-    }
-
-    /**
-     * Tạo nội dung báo cáo trạng thái kỹ thuật hệ thống.
-     */
-    private static void updateStatusText(JTextArea area) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("BÁO CÁO TRẠNG THÁI HẠ TẦNG KỸ THUẬT\n");
-        sb.append("-----------------------------------------------------------------\n\n");
-
-        boolean dbStatus = DBConnection.getInstance().testConnection(2);
-        sb.append("1. TRẠNG THÁI KẾT NỐI CƠ SỞ DỮ LIỆU MYSQL:\n");
-        if (dbStatus) {
-            sb.append("Trạng thái: KẾT NỐI THÀNH CÔNG\n");
-            sb.append("Database:   quan_li_thu_vien\n");
-            sb.append("Driver:     com.mysql.cj.jdbc.Driver\n\n");
-        } else {
-            sb.append("Trạng thái: KHÔNG THỂ KẾT NỐI\n");
-            sb.append("Khắc phục:  Khởi động dịch vụ MySQL và nạp script setup_database.sql\n\n");
-        }
-
-        SessionManager session = SessionManager.getInstance();
-        sb.append("2. PHIÊN LÀM VIỆC HIỆN TẠI (SESSION MANAGER):\n");
-        sb.append("Xác thực:   ").append(session.isLoggedIn() ? "Đã xác thực" : "Chưa xác thực (Khách)").append("\n");
-        sb.append("Người dùng: ").append(session.getDisplayNameWithRole()).append("\n\n");
-
-        sb.append("3. MÔI TRƯỜNG THỰC THI (RUNTIME ENVIRONMENT):\n");
-        sb.append("Java:       ").append(System.getProperty("java.version")).append(" (").append(System.getProperty("java.vendor")).append(")\n");
-        sb.append("Hệ điều hành: ").append(System.getProperty("os.name")).append(" ").append(System.getProperty("os.arch")).append("\n");
-
-        area.setText(sb.toString());
+    public static void showInfrastructureOverviewWindow() {
+        InfrastructureStatusFrame statusFrame = new InfrastructureStatusFrame(APP_TITLE, APP_VERSION);
+        statusFrame.setVisible(true);
     }
 }

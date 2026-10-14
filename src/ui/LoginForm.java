@@ -79,7 +79,7 @@ public class LoginForm extends JFrame {
         btnLogin.setPreferredSize(new Dimension(140, 36));
         panel.add(btnLogin, gbc);
 
-        // 4. Panel tài khoản kiểm thử nhanh bên dưới
+        // 4. Bảng danh mục tài khoản định danh hệ thống
         gbc.gridx = 0;
         gbc.gridy = 3;
         gbc.gridwidth = 2;
@@ -100,7 +100,7 @@ public class LoginForm extends JFrame {
     }
 
     /**
-     * Tạo bảng danh sách 4 tài khoản kiểm thử theo yêu cầu
+     * Khởi tạo danh mục tài khoản định danh phục vụ xác thực người dùng.
      */
     private JPanel createTestAccountsPanel() {
         JPanel container = new JPanel();
@@ -111,21 +111,21 @@ public class LoginForm extends JFrame {
                 new EmptyBorder(10, 12, 10, 12)
         ));
 
-        JLabel lblTitle = new JLabel("Tài khoản kiểm thử nhanh (Click để tự động điền):");
+        JLabel lblTitle = new JLabel("Danh mục tài khoản hệ thống (Nhấp để chọn nhanh):");
         lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 12));
         lblTitle.setForeground(new Color(71, 85, 105));
         lblTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
         container.add(lblTitle);
         container.add(Box.createVerticalStrut(8));
 
-        // Tài khoản mẫu
+        // Danh mục tài khoản theo từng vai trò phân quyền
         container.add(createAccountRow("Quản lý:", "admin", "admin123", new Color(124, 58, 237)));
         container.add(Box.createVerticalStrut(5));
         container.add(createAccountRow("Thủ thư:", "thuthu01", "thuthu123", new Color(2, 132, 199)));
         container.add(Box.createVerticalStrut(5));
         container.add(createAccountRow("Sinh viên:", "sv001", "123456", new Color(16, 185, 129)));
         container.add(Box.createVerticalStrut(5));
-        container.add(createAccountRow("SV có nợ:", "sv003", "123456", new Color(234, 88, 12)));
+        container.add(createAccountRow("Sinh viên (Nợ):", "sv003", "123456", new Color(234, 88, 12)));
 
         return container;
     }

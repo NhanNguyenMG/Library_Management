@@ -1,11 +1,13 @@
 package ui;
 
 import controller.ReturnController;
-import model.BorrowingItemDTO;
+import dto.BorrowingItemDTO;
+import dto.ReturnResultDTO;
 import model.PriorityStudent;
-import model.ReturnResult;
 import model.Student;
 import service.SessionManager;
+import ui.component.TableButtonEditor;
+import ui.component.TableButtonRenderer;
 
 import javax.swing.*;
 import javax.swing.border.CompoundBorder;
@@ -273,9 +275,14 @@ public class ReturnBookForm extends JFrame {
         comboCondition.addActionListener(e -> capNhatPhiBoiThuong());
         tblBooks.getColumnModel().getColumn(3).setCellEditor(new DefaultCellEditor(comboCondition));
 
-        // Editor & Renderer cho nút "Quét/Xác nhận trả"
-        tblBooks.getColumnModel().getColumn(4).setCellRenderer(new TableButtonRenderer());
-        tblBooks.getColumnModel().getColumn(4).setCellEditor(new TableButtonEditor(new JCheckBox()));
+        // Editor & Renderer cho nút "Quét/Xác nhận trả" (sử dụng component UI dùng chung)
+        Color btnBg = new Color(230, 245, 235);
+        Color btnFg = new Color(22, 101, 52);
+        LineBorder btnBorder = new LineBorder(new Color(134, 239, 172), 1);
+        tblBooks.getColumnModel().getColumn(4).setCellRenderer(
+                new TableButtonRenderer("Quét/Xác nhận trả", btnBg, btnFg, btnBorder));
+        tblBooks.getColumnModel().getColumn(4).setCellEditor(
+                new TableButtonEditor("Quét/Xác nhận trả", btnBg, btnFg, btnBorder, this::xuLyQuetDongSach));
 
         JScrollPane scrollPane = new JScrollPane(tblBooks);
         scrollPane.setPreferredSize(new Dimension(880, 160));
@@ -619,7 +626,7 @@ public class ReturnBookForm extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         try {
-            ReturnResult result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId, isPaidNow);
+            ReturnResultDTO result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId, isPaidNow);
 
             if (result.isSuccess()) {
                 String paymentNotice = isPaidNow ? "Đã thu tiền mặt trực tiếp tại quầy (Không ghi nhận nợ)." : "Đã ghi nhận nợ vào tài khoản sinh viên.";
@@ -675,57 +682,7 @@ public class ReturnBookForm extends JFrame {
         txtStudentId.requestFocusInWindow();
     }
 
-    /**
-     * Lớp hiển thị nút bấm trong cell của JTable
-     */
-    private class TableButtonRenderer extends JButton implements TableCellRenderer {
-        public TableButtonRenderer() {
-            setOpaque(true);
-            setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            setBackground(new Color(245, 247, 250));
-            setForeground(new Color(30, 41, 59));
-            setBorder(new javax.swing.border.LineBorder(new Color(203, 213, 225), 1));
-        }
 
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "Quét/Xác nhận" : value.toString());
-            return this;
-        }
-    }
-
-    /**
-     * Lớp xử lý sự kiện khi bấm nút trong cell của JTable
-     */
-    private class TableButtonEditor extends DefaultCellEditor {
-        private final JButton button;
-        private int selectedRow;
-
-        public TableButtonEditor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Quét/Xác nhận trả");
-            button.setOpaque(true);
-            button.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-            button.setBackground(new Color(230, 245, 235));
-            button.setForeground(new Color(22, 101, 52));
-            button.setBorder(new javax.swing.border.LineBorder(new Color(134, 239, 172), 1));
-            button.addActionListener(e -> {
-                fireEditingStopped();
-                xuLyQuetDongSach(selectedRow);
-            });
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            selectedRow = row;
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return "Quét/Xác nhận trả";
-        }
-    }
 
     /**
      * Điểm chạy thử độc lập giao diện

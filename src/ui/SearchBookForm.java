@@ -2,8 +2,8 @@ package ui;
 
 import controller.DebtController;
 import controller.SearchController;
+import dto.DebtPaymentResultDTO;
 import model.Book;
-import model.DebtPaymentResult;
 import model.Student;
 import service.SessionManager;
 
@@ -405,7 +405,7 @@ public class SearchBookForm extends JFrame {
 
         txtTuKhoa.setText("");
 
-        taiToanBoDanhSachSach(); // Tải lại toàn bộ sách thay vì làm bảng trống trơn
+        taiToanBoDanhSachSach(); // Tải lại toàn bộ danh mục tài liệu vào bảng hiển thị
 
         txtTuKhoa.requestFocus();
     }
@@ -660,7 +660,7 @@ public class SearchBookForm extends JFrame {
             );
 
             if (choice == JOptionPane.YES_OPTION) {
-                DebtPaymentResult result = debtController.thanhToanNo(
+                DebtPaymentResultDTO result = debtController.thanhToanNo(
                         student.getStudentId(),
                         debt,
                         "ONLINE",
@@ -681,13 +681,13 @@ public class SearchBookForm extends JFrame {
                     JOptionPane.showMessageDialog(
                             this,
                             "Lỗi trong quá trình thực hiện thanh toán: " + result.getMessage(),
-                            "Lỗi",
+                            "Lỗi thanh toán",
                             JOptionPane.ERROR_MESSAGE
                     );
                 }
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Lỗi khi xử lý thanh toán: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Hệ thống gặp sự cố trong quá trình xử lý thanh toán: " + e.getMessage(), "Lỗi giao dịch", JOptionPane.ERROR_MESSAGE);
         }
     }
 
