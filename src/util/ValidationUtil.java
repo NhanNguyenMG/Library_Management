@@ -3,8 +3,7 @@ package util;
 import exception.ValidationException;
 
 /**
- * Tiện ích kiểm tra hợp lệ dữ liệu đầu vào (Validation Utility).
- * Tương tự ValidationUtil trong kiến trúc của hệ thống phoneStore.
+ * Tiện ích kiểm tra hợp lệ dữ liệu đầu vào (Validation Utility) cho hệ thống Thư viện.
  */
 public final class ValidationUtil {
 
