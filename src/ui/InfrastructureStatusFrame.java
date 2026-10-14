@@ -7,7 +7,7 @@ import java.awt.*;
 
 /**
  * Cửa sổ hiển thị trạng thái hạ tầng kỹ thuật và chẩn đoán kết nối CSDL (Infrastructure Status Frame).
- * Tách biệt hoàn toàn khỏi MainApp để tuân thủ Single Responsibility Principle (SRP).
+ * Tách biệt khỏi MainApp
  */
 public class InfrastructureStatusFrame extends JFrame {
 

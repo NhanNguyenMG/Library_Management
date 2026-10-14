@@ -21,23 +21,6 @@ public final class ValidationUtil {
         }
     }
 
-    /**
-     * Kiểm tra số tiền phải lớn hơn 0.
-     */
-    public static void validatePositiveAmount(double amount, String errorMessage) {
-        if (amount <= 0) {
-            throw new ValidationException(errorMessage);
-        }
-    }
-
-    /**
-     * Kiểm tra số lượng phải là số nguyên dương.
-     */
-    public static void validatePositiveInteger(int value, String errorMessage) {
-        if (value <= 0) {
-            throw new ValidationException(errorMessage);
-        }
-    }
 
     /**
      * Kiểm tra mã sinh viên hợp lệ.
@@ -46,12 +29,6 @@ public final class ValidationUtil {
         validateNotEmpty(studentId, "Mã thẻ sinh viên không được để trống.");
     }
 
-    /**
-     * Kiểm tra mã đầu sách hợp lệ.
-     */
-    public static void validateBookId(String bookId) {
-        validateNotEmpty(bookId, "Mã đầu sách không được để trống.");
-    }
 
     /**
      * Kiểm tra thông tin đăng nhập.

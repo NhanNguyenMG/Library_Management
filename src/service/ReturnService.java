@@ -205,11 +205,11 @@ public class ReturnService {
     /**
      * Xác nhận trả sách với giao dịch Database Transaction (mặc định chưa thu tiền mặt ngay).
      */
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+    public ReturnResultDTO confirmReturn(List<BorrowingItemDTO> scannedItems,
                                            String slipId,
                                            Student student,
                                            String librarianId) {
-        return xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
+        return confirmReturn(scannedItems, slipId, student, librarianId, false);
     }
 
     /**
@@ -224,7 +224,7 @@ public class ReturnService {
      * @param isPaidNow true nếu thu tiền mặt trực tiếp tại quầy, false nếu ghi nợ vào tài khoản để trả sau
      * @return ReturnResultDTO kết quả trả sách
      */
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
+    public ReturnResultDTO confirmReturn(List<BorrowingItemDTO> scannedItems,
                                            String slipId,
                                            Student student,
                                            String librarianId,
@@ -354,5 +354,17 @@ public class ReturnService {
                 }
             }
         }
+    }
+
+    // =========================================================================
+    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
+    // =========================================================================
+
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId) {
+        return confirmReturn(scannedItems, slipId, student, librarianId);
+    }
+
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId, boolean isPaidNow) {
+        return confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
     }
 }

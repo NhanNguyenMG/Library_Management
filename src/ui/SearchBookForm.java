@@ -619,7 +619,7 @@ public class SearchBookForm extends JFrame {
 
         try {
             DebtController debtController = new DebtController();
-            Student student = debtController.layThongTinNoSinhVien(session.getUserId());
+            Student student = debtController.getStudentDebtInfo(session.getUserId());
             double debt = (student != null) ? student.getDebtAmount() : 0.0;
 
             if (debt > 0) {
@@ -644,7 +644,7 @@ public class SearchBookForm extends JFrame {
 
         try {
             DebtController debtController = new DebtController();
-            Student student = debtController.layThongTinNoSinhVien(session.getUserId());
+            Student student = debtController.getStudentDebtInfo(session.getUserId());
             if (student == null || student.getDebtAmount() <= 0) {
                 JOptionPane.showMessageDialog(this, "Tài khoản hiện không có khoản nợ tiền phạt nào cần thanh toán.", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
                 return;
@@ -660,7 +660,7 @@ public class SearchBookForm extends JFrame {
             );
 
             if (choice == JOptionPane.YES_OPTION) {
-                DebtPaymentResultDTO result = debtController.thanhToanNo(
+                DebtPaymentResultDTO result = debtController.payDebt(
                         student.getStudentId(),
                         debt,
                         "ONLINE",

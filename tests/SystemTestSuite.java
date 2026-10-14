@@ -242,7 +242,7 @@ public class SystemTestSuite {
             // Danh sách sách quét rỗng
             List<BorrowingItemDTO> emptyList = new ArrayList<>();
             Student s = new Student("SV0001", "Bảo", "b@sv.edu.vn", "sv001", "0901", 1, 0, "THUONG");
-            ReturnResultDTO res = returnService.xacNhanTraSach(emptyList, "PM0001", s, "TT0001");
+            ReturnResultDTO res = returnService.confirmReturn(emptyList, "PM0001", s, "TT0001");
             boolean pass = !res.isSuccess();
             printResult("TC-12", "Chưa quét sách hoặc sách không khớp", "Chặn xác nhận trả sách", pass);
         } catch (Exception e) {

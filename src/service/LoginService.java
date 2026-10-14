@@ -11,7 +11,7 @@ public class LoginService {
 
     /**
      * Kiểm tra thông tin đăng nhập của người dùng.
-     * Áp dụng ValidationUtil và AuthenticationException theo chuẩn SRP như dự án phoneStore.
+     * Áp dụng ValidationUtil và AuthenticationException
      */
     public Account login(String username, String password) throws AuthenticationException {
         // Kiểm tra tính hợp lệ của dữ liệu đầu vào

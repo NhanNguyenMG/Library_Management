@@ -425,10 +425,10 @@ public class ReturnBookForm extends JFrame {
 
         try {
             // 1. Lấy thông tin sinh viên
-            currentStudent = returnController.layThongTinSinhVien(studentId);
+            currentStudent = returnController.getStudentInfo(studentId);
 
             // 2. Lấy danh sách sách đang mượn
-            currentItems = returnController.laySachDangMuon(studentId);
+            currentItems = returnController.getBorrowingDetails(studentId);
 
             // 3. Hiển thị lên bảng
             tableModel.setRowCount(0);
@@ -512,9 +512,9 @@ public class ReturnBookForm extends JFrame {
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
         boolean hasScanned = currentItems.stream().anyMatch(BorrowingItemDTO::isScanned);
-        long maxLateDays = returnController.tinhSoNgayTreLonNhat(currentItems, now);
+        long maxLateDays = returnController.calculateMaxLateDays(currentItems, now);
         double totalFine = hasScanned
-                ? returnController.tinhTongTienPhat(currentItems, currentStudent, now)
+                ? returnController.calculateTotalFine(currentItems, currentStudent, now)
                 : 0.0;
 
         lblLateDaysValue.setText(maxLateDays + " ngày");
@@ -582,8 +582,8 @@ public class ReturnBookForm extends JFrame {
         }
 
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        double totalFine = returnController.tinhTongTienPhat(scannedList, currentStudent, now);
-        long maxLateDays = returnController.tinhSoNgayTreLonNhat(scannedList, now);
+        double totalFine = returnController.calculateTotalFine(scannedList, currentStudent, now);
+        long maxLateDays = returnController.calculateMaxLateDays(scannedList, now);
 
         // Xử lý phí phạt: Lựa chọn thu tiền mặt trực tiếp hoặc ghi nợ vào tài khoản
         boolean isPaidNow = false;
@@ -626,7 +626,7 @@ public class ReturnBookForm extends JFrame {
         setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
         try {
-            ReturnResultDTO result = returnController.xacNhanTraSach(scannedList, slipId, currentStudent, librarianId, isPaidNow);
+            ReturnResultDTO result = returnController.confirmReturn(scannedList, slipId, currentStudent, librarianId, isPaidNow);
 
             if (result.isSuccess()) {
                 String paymentNotice = isPaidNow ? "Đã thu tiền mặt trực tiếp tại quầy (Không ghi nhận nợ)." : "Đã ghi nhận nợ vào tài khoản sinh viên.";

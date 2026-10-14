@@ -11,13 +11,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =============================================================================
- * REPOSITORY TRUY XUẤT DỮ LIỆU THANH TOÁN & TIỀN PHẠT (BẢNG thanh_toan)
- * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
- * Ánh xạ với tài liệu SRS (Bảng 12, 13, 17 ThanhToanRepository) và Báo cáo cuối kỳ.
- * =============================================================================
- */
+
 public class PaymentRepository {
 
     private static final String TRANSACTION_ID_PREFIX = "TT";

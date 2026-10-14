@@ -10,13 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =============================================================================
- * REPOSITORY TRUY XUẤT DỮ LIỆU CHI TIẾT PHIẾU MƯỢN (BẢNG chi_tiet_phieu_muon)
- * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
- * Ánh xạ với tài liệu SRS và Báo cáo cuối kỳ môn Công nghệ Phần mềm.
- * =============================================================================
- */
+
 public class BorrowDetailRepository {
 
     private static final String DETAIL_ID_PREFIX = "CT";

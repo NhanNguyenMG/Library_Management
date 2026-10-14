@@ -8,13 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-/**
- * =============================================================================
- * REPOSITORY TRUY XUẤT DỮ LIỆU TÀI KHOẢN VÀ PHÂN QUYỀN (BẢNG tai_khoan)
- * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
- * Ánh xạ với tài liệu SRS và Báo cáo cuối kỳ môn Công nghệ Phần mềm.
- * =============================================================================
- */
+
 public class AccountRepository {
 
     /**

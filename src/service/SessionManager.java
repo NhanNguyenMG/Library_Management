@@ -3,7 +3,7 @@ package service;
 import java.util.Date;
 
 /**
- * Quản lý phiên làm việc của người dùng hiện tại theo mẫu thiết kế Singleton.
+ * Quản lý phiên làm việc của người dùng hiện tại
  */
 public class SessionManager {
 
@@ -22,7 +22,7 @@ public class SessionManager {
     private Date loginTime;
 
     /**
-     * Khởi tạo đối tượng với phạm vi private theo mẫu Singleton.
+     * Khởi tạo đối tượng với phạm vi private.
      */
     private SessionManager() {
         clearSession();

@@ -8,6 +8,10 @@ import service.ReturnService;
 import java.sql.Timestamp;
 import java.util.List;
 
+/**
+ * Controller điều phối luồng nghiệp vụ Trả sách và xử lý phạt (UC-05, UC-06, UC-07).
+ * Tuân thủ Coding Standards: Tên phương thức 100% bằng tiếng Anh.
+ */
 public class ReturnController {
 
     private final ReturnService returnService;
@@ -21,65 +25,101 @@ public class ReturnController {
     }
 
     /**
-     * Tra cứu hồ sơ sinh viên theo mã thẻ / MSSV.
+     * Tra cứu thông tin hồ sơ sinh viên theo mã thẻ / MSSV.
      */
-    public Student layThongTinSinhVien(String studentId) {
+    public Student getStudentInfo(String studentId) {
         return returnService.getStudentInfo(studentId);
     }
 
     /**
      * Lấy danh sách các đầu sách đang mượn của sinh viên.
      */
-    public List<BorrowingItemDTO> laySachDangMuon(String studentId) {
+    public List<BorrowingItemDTO> getBorrowingDetails(String studentId) {
         return returnService.getBorrowingDetailsByStudent(studentId);
     }
 
     /**
-     * Tính số ngày trễ hạn.
+     * Tính số ngày trễ hạn dựa vào hạn trả và ngày trả thực tế.
      */
-    public long tinhSoNgayTre(Timestamp dueDate, Timestamp actualReturnDate) {
+    public long calculateLateDays(Timestamp dueDate, Timestamp actualReturnDate) {
         return returnService.calculateLateDays(dueDate, actualReturnDate);
     }
 
     /**
-     * Tính tổng số tiền phạt phát sinh.
+     * Tính số tiền phạt phát sinh cho một đầu sách.
      */
-    public double tinhTienPhat(long lateDays, Student student, double compensationFees) {
+    public double calculateFine(long lateDays, Student student, double compensationFees) {
         return returnService.calculateFine(lateDays, student, compensationFees);
     }
 
     /**
      * Tính tổng số tiền phạt phát sinh cho danh sách các cuốn sách được quét.
      */
-    public double tinhTongTienPhat(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
+    public double calculateTotalFine(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
         return returnService.calculateTotalFineForItems(items, student, actualReturnDate);
     }
 
     /**
      * Tính số ngày trễ lớn nhất trong danh sách các cuốn sách được quét.
      */
-    public long tinhSoNgayTreLonNhat(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
+    public long calculateMaxLateDays(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
         return returnService.calculateMaxLateDays(items, actualReturnDate);
     }
 
     /**
-     * Xác nhận trả sách (mặc định chưa thu tiền mặt ngay).
+     * Xác nhận trả sách với giao dịch Database Transaction (mặc định chưa thu tiền mặt ngay).
      */
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                           String slipId,
-                                           Student student,
-                                           String librarianId) {
-        return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, false);
+    public ReturnResultDTO confirmReturn(List<BorrowingItemDTO> scannedItems,
+                                         String slipId,
+                                         Student student,
+                                         String librarianId) {
+        return returnService.confirmReturn(scannedItems, slipId, student, librarianId, false);
     }
 
     /**
      * Xác nhận trả sách kèm lựa chọn thu tiền mặt ngay hoặc ghi nhận nợ.
      */
-    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems,
-                                           String slipId,
-                                           Student student,
-                                           String librarianId,
-                                           boolean isPaidNow) {
-        return returnService.xacNhanTraSach(scannedItems, slipId, student, librarianId, isPaidNow);
+    public ReturnResultDTO confirmReturn(List<BorrowingItemDTO> scannedItems,
+                                         String slipId,
+                                         Student student,
+                                         String librarianId,
+                                         boolean isPaidNow) {
+        return returnService.confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
+    }
+
+    // =========================================================================
+    // TRACEABILITY ALIASES (Khớp với Bảng 13 và Bảng 17 trong SRS)
+    // =========================================================================
+
+    public Student layThongTinSinhVien(String studentId) {
+        return getStudentInfo(studentId);
+    }
+
+    public List<BorrowingItemDTO> laySachDangMuon(String studentId) {
+        return getBorrowingDetails(studentId);
+    }
+
+    public long tinhSoNgayTre(Timestamp dueDate, Timestamp actualReturnDate) {
+        return calculateLateDays(dueDate, actualReturnDate);
+    }
+
+    public double tinhTienPhat(long lateDays, Student student, double compensationFees) {
+        return calculateFine(lateDays, student, compensationFees);
+    }
+
+    public double tinhTongTienPhat(List<BorrowingItemDTO> items, Student student, Timestamp actualReturnDate) {
+        return calculateTotalFine(items, student, actualReturnDate);
+    }
+
+    public long tinhSoNgayTreLonNhat(List<BorrowingItemDTO> items, Timestamp actualReturnDate) {
+        return calculateMaxLateDays(items, actualReturnDate);
+    }
+
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId) {
+        return confirmReturn(scannedItems, slipId, student, librarianId, false);
+    }
+
+    public ReturnResultDTO xacNhanTraSach(List<BorrowingItemDTO> scannedItems, String slipId, Student student, String librarianId, boolean isPaidNow) {
+        return confirmReturn(scannedItems, slipId, student, librarianId, isPaidNow);
     }
 }

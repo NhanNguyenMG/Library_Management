@@ -22,7 +22,7 @@ import java.util.Date;
  */
 public class DashboardForm extends JFrame {
 
-    // Bảng màu giao diện chuẩn hiện đại
+    // Bảng màu giao diện
     private static final Color COLOR_SIDEBAR = new Color(26, 37, 54);          // #1A2536
     private static final Color COLOR_SIDEBAR_HOVER = new Color(38, 52, 75);    // #26344B
     private static final Color COLOR_SIDEBAR_TEXT = new Color(203, 213, 225);   // #CBD5E1
@@ -539,7 +539,7 @@ public class DashboardForm extends JFrame {
         }
         try {
             DebtController debtController = new DebtController();
-            return debtController.layThongTinNoSinhVien(studentId.trim());
+            return debtController.getStudentDebtInfo(studentId.trim());
         } catch (Exception e) {
             System.err.println("[ERROR] [DashboardForm] Lỗi tải dữ liệu thông tin sinh viên: " + e.getMessage());
             return null;
@@ -564,7 +564,7 @@ public class DashboardForm extends JFrame {
 
         if (choice == JOptionPane.YES_OPTION) {
             DebtController debtController = new DebtController();
-            DebtPaymentResultDTO result = debtController.thanhToanNo(
+            DebtPaymentResultDTO result = debtController.payDebt(
                     student.getStudentId(),
                     debt,
                     "ONLINE",

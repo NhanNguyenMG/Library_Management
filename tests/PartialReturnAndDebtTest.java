@@ -76,7 +76,7 @@ public class PartialReturnAndDebtTest {
         scannedList.add(itemToReturn);
 
         Student student = studentRepo.findByStudentId(testStudentId);
-        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, student, "TT0001", true);
+        ReturnResultDTO result = returnService.confirmReturn(scannedList, testSlipId, student, "TT0001", true);
 
         if (!result.isSuccess()) {
             System.out.println("[ FAILED ] (Xác nhận trả không thành công: " + result.getMessage() + ")");
@@ -130,7 +130,7 @@ public class PartialReturnAndDebtTest {
         item.setStatus("Đã quét");
         List<BorrowingItemDTO> scannedList = List.of(item);
 
-        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", true);
+        ReturnResultDTO result = returnService.confirmReturn(scannedList, testSlipId, studentBefore, "TT0001", true);
 
         if (!result.isSuccess() || result.getFineAmount() <= 0) {
             System.out.println("[ FAILED ] (Không phát sinh tiền phạt theo quy định)");
@@ -181,7 +181,7 @@ public class PartialReturnAndDebtTest {
         item.setStatus("Đã quét");
         List<BorrowingItemDTO> scannedList = List.of(item);
 
-        ReturnResultDTO result = returnService.xacNhanTraSach(scannedList, testSlipId, studentBefore, "TT0001", false);
+        ReturnResultDTO result = returnService.confirmReturn(scannedList, testSlipId, studentBefore, "TT0001", false);
 
         if (!result.isSuccess() || result.getFineAmount() <= 0) {
             System.out.println("[ FAILED ] (Không phát sinh tiền phạt theo quy định)");

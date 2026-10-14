@@ -11,13 +11,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =============================================================================
- * REPOSITORY TRUY XUẤT DỮ LIỆU PHIẾU MƯỢN (BẢNG phieu_muon)
- * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
- * Ánh xạ với tài liệu SRS (Bảng 12, 13, 17 PhieuMuonRepository) và Báo cáo cuối kỳ.
- * =============================================================================
- */
+
 public class BorrowSlipRepository {
 
     private static final String SLIP_ID_PREFIX = "PM";

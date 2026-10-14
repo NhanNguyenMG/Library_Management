@@ -20,10 +20,4 @@ public final class FormatUtil {
         return String.format(LOCALE_VN, "%,.0f đ", amount);
     }
 
-    /**
-     * Định dạng tiền tệ kèm đơn vị VNĐ (ví dụ: "15,000 VNĐ").
-     */
-    public static String formatMoneyVND(double amount) {
-        return String.format(LOCALE_VN, "%,.0f VNĐ", amount);
-    }
 }

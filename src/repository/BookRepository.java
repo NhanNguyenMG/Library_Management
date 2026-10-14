@@ -10,13 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * =============================================================================
- * REPOSITORY TRUY XUẤT DỮ LIỆU ĐẦU SÁCH (BẢNG dau_sach)
- * Thuộc tầng Data Access Layer trong kiến trúc Closed 4-Layer.
- * Ánh xạ với tài liệu SRS (Bảng 12, 13 DauSachRepository) và Báo cáo cuối kỳ.
- * =============================================================================
- */
+
 public class BookRepository {
 
     /**
