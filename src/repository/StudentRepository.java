@@ -34,11 +34,11 @@ public class StudentRepository {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String loai = rs.getString("loai");
-                    double mucGiamGia = rs.getDouble("muc_giam_gia");
-                    String liDo = rs.getString("li_do");
+                    String studentType = rs.getString("loai");
+                    double discountRate = rs.getDouble("muc_giam_gia");
+                    String priorityReason = rs.getString("li_do");
 
-                    if ("UU_TIEN".equalsIgnoreCase(loai)) {
+                    if ("UU_TIEN".equalsIgnoreCase(studentType)) {
                         return new PriorityStudent(
                                 rs.getString("mssv"),
                                 rs.getString("ho_ten"),
@@ -47,9 +47,9 @@ public class StudentRepository {
                                 rs.getString("sdt"),
                                 rs.getInt("so_sach_dang_muon"),
                                 rs.getDouble("so_tien_no"),
-                                loai,
-                                mucGiamGia,
-                                liDo
+                                studentType,
+                                discountRate,
+                                priorityReason
                         );
                     } else {
                         return new Student(
@@ -60,7 +60,7 @@ public class StudentRepository {
                                 rs.getString("sdt"),
                                 rs.getInt("so_sach_dang_muon"),
                                 rs.getDouble("so_tien_no"),
-                                loai
+                                studentType
                         );
                     }
                 }

@@ -281,11 +281,11 @@ public class BorrowForm extends JFrame {
         lblPendingCount.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lblPendingCount.setForeground(new Color(90, 95, 100));
 
-        JButton btnTraCuuSach = createStyledButton("Tra cứu sách", new Color(241, 245, 249), new Color(30, 41, 59));
-        btnTraCuuSach.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        btnTraCuuSach.setPreferredSize(new Dimension(130, 34));
-        btnTraCuuSach.setToolTipText("Mở bảng tra cứu để xem toàn bộ danh mục sách và mã sách");
-        btnTraCuuSach.addActionListener(e -> {
+        JButton btnSearchBook = createStyledButton("Tra cứu sách", new Color(241, 245, 249), new Color(30, 41, 59));
+        btnSearchBook.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+        btnSearchBook.setPreferredSize(new Dimension(130, 34));
+        btnSearchBook.setToolTipText("Mở bảng tra cứu để xem toàn bộ danh mục sách và mã sách");
+        btnSearchBook.addActionListener(e -> {
             SearchBookForm searchForm = new SearchBookForm();
             searchForm.setVisible(true);
         });
@@ -293,7 +293,7 @@ public class BorrowForm extends JFrame {
         scanPanel.add(lblBookId);
         scanPanel.add(txtBookId);
         scanPanel.add(btnAddBook);
-        scanPanel.add(btnTraCuuSach);
+        scanPanel.add(btnSearchBook);
         scanPanel.add(Box.createHorizontalStrut(20));
         scanPanel.add(lblPendingCount);
 
